@@ -1,0 +1,218 @@
+# Exported for PBRT Version : v3 Master Branch
+
+Film "image"
+	"integer yresolution" [540]
+	"float scale" [1.0]
+	"float diagonal" [43.2665287723]
+	"integer xresolution" [960]
+
+Sampler "halton"
+	"integer pixelsamples" [4]
+
+PixelFilter "gaussian"
+	"float ywidth" [2.0]
+	"float xwidth" [2.0]
+	"float alpha" [2.0]
+
+Integrator "path"
+	"string lightsamplestrategy" ["spatial"]
+	"integer maxdepth" [5]
+	"float rrthreshold" [1.0]
+
+Accelerator "bvh"
+	"string splitmethod" ["sah"]
+	"integer maxnodeprims" [4]
+
+# Camera begin
+Scale -1 1 1
+LookAt 36.678613 21.630856 16.414997 -0.649073 -1.329404 -0.991189 -0.441300 0.873446 -0.205781
+Camera "perspective"
+	"float fov" [30] #54.4322231146
+	"float screenwindow" [-1.0 1.0 -0.5625 0.5625]
+# Camera end
+
+WorldBegin
+	AttributeBegin
+		# Maya Directional Light : |directionalLight1|directionalLightShape1
+		LightSource "distant"
+			"point to" [0.707106781187 -0.707106781187 -4.4408920985e-16]
+			"rgb scale" [1.0 1.0 1.0]
+			"rgb L" [1.0 1.0 1.0]
+	AttributeEnd
+
+	# uniform blue-ish illumination from all directions
+	LightSource "infinite" "rgb L" [.4 .45 .5]
+
+	# approximate the sun
+	LightSource "distant"  "point from" [ -30 40  100 ]
+		"blackbody L" [3000 1.5]
+
+	MakeNamedMaterial "lambert4"
+		"string type" ["matte"]
+		"rgb Kd" [0.197703108191 0.412999987602 0.0]
+
+	MakeNamedMaterial "lambert5"
+		"string type" ["matte"]
+		"rgb Kd" [0.165999993682 0.0607310943305 0.0]
+
+	ObjectBegin "|PalmTree|Leaf7"
+		# Maya Geometry : |PalmTree|Leaf7|Leaf7Shape
+		NamedMaterial "lambert4"
+		#Material "glass"
+		Include "__PalmTree__Leaf7__Leaf7Shape.pbrt"
+	ObjectEnd
+
+	AttributeBegin
+		# Maya Transform : |PalmTree|Leaf7
+		ObjectInstance "|PalmTree|Leaf7"
+	AttributeEnd
+
+	ObjectBegin "|PalmTree|Leaf6"
+		# Maya Geometry : |PalmTree|Leaf6|Leaf6Shape
+		NamedMaterial "lambert4"
+		#Material "glass"
+		Include "__PalmTree__Leaf6__Leaf6Shape.pbrt"
+	ObjectEnd
+
+	AttributeBegin
+		# Maya Transform : |PalmTree|Leaf6
+		ObjectInstance "|PalmTree|Leaf6"
+	AttributeEnd
+
+	ObjectBegin "|PalmTree|Leaf5"
+		# Maya Geometry : |PalmTree|Leaf5|Leaf5Shape
+		NamedMaterial "lambert4"
+		#Material "glass"
+		Include "__PalmTree__Leaf5__Leaf5Shape.pbrt"
+	ObjectEnd
+
+	AttributeBegin
+		# Maya Transform : |PalmTree|Leaf5
+		ObjectInstance "|PalmTree|Leaf5"
+	AttributeEnd
+
+	ObjectBegin "|PalmTree|Leaf4"
+		# Maya Geometry : |PalmTree|Leaf4|Leaf4Shape
+		NamedMaterial "lambert4"
+		#Material "glass"
+		Include "__PalmTree__Leaf4__Leaf4Shape.pbrt"
+	ObjectEnd
+
+	AttributeBegin
+		# Maya Transform : |PalmTree|Leaf4
+		ObjectInstance "|PalmTree|Leaf4"
+	AttributeEnd
+
+	ObjectBegin "|PalmTree|Leaf3"
+		# Maya Geometry : |PalmTree|Leaf3|Leaf3Shape
+		NamedMaterial "lambert4"
+		#Material "glass"
+		Include "__PalmTree__Leaf3__Leaf3Shape.pbrt"
+	ObjectEnd
+
+	AttributeBegin
+		# Maya Transform : |PalmTree|Leaf3
+		ObjectInstance "|PalmTree|Leaf3"
+	AttributeEnd
+
+	ObjectBegin "|PalmTree|Leaf2"
+		# Maya Geometry : |PalmTree|Leaf2|Leaf2Shape
+		NamedMaterial "lambert4"
+		#Material "glass"
+		Include "__PalmTree__Leaf2__Leaf2Shape.pbrt"
+	ObjectEnd
+
+	AttributeBegin
+		# Maya Transform : |PalmTree|Leaf2
+		ObjectInstance "|PalmTree|Leaf2"
+	AttributeEnd
+
+	ObjectBegin "|PalmTree|Leaf1"
+		# Maya Geometry : |PalmTree|Leaf1|Leaf1Shape
+		NamedMaterial "lambert4"
+		#Material "glass"
+		Include "__PalmTree__Leaf1__Leaf1Shape.pbrt"
+	ObjectEnd
+
+	AttributeBegin
+		# Maya Transform : |PalmTree|Leaf1
+		ObjectInstance "|PalmTree|Leaf1"
+	AttributeEnd
+
+AttributeBegin
+  Material "glass"
+  Shape "sphere" "float radius" 1
+AttributeEnd
+AttributeBegin
+  Material "glass"
+  Shape "sphere" "float radius" 1
+AttributeEnd
+AttributeBegin
+  Material "glass"
+  Shape "sphere" "float radius" 1
+AttributeEnd
+
+	ObjectBegin "|PalmTree|Leaf9"
+		# Maya Geometry : |PalmTree|Leaf9|Leaf9Shape
+		NamedMaterial "lambert4"
+		#Material "glass"
+		Include "__PalmTree__Leaf9__Leaf9Shape.pbrt"
+	ObjectEnd
+
+	AttributeBegin
+		# Maya Transform : |PalmTree|Leaf9
+		ObjectInstance "|PalmTree|Leaf9"
+	AttributeEnd
+
+	ObjectBegin "|PalmTree|Leaf8"
+		# Maya Geometry : |PalmTree|Leaf8|Leaf8Shape
+		NamedMaterial "lambert4"
+		#Material "glass"
+		Include "__PalmTree__Leaf8__Leaf8Shape.pbrt"
+	ObjectEnd
+
+	AttributeBegin
+		# Maya Transform : |PalmTree|Leaf8
+		ObjectInstance "|PalmTree|Leaf8"
+	AttributeEnd
+
+	ObjectBegin "|PalmTree|Trunk"
+		# Maya Geometry : |PalmTree|Trunk|TrunkShape
+		NamedMaterial "lambert5"
+		#Material "glass"
+		Include "__PalmTree__Trunk__TrunkShape.pbrt"
+	ObjectEnd
+
+	AttributeBegin
+		# Maya Transform : |PalmTree|Trunk
+		ObjectInstance "|PalmTree|Trunk"
+	AttributeEnd
+
+	ObjectBegin "|PalmTree|Leaf10"
+		# Maya Geometry : |PalmTree|Leaf10|Leaf10Shape
+		NamedMaterial "lambert4"
+		#Material "glass"
+		Include "__PalmTree__Leaf10__Leaf10Shape.pbrt"
+	ObjectEnd
+
+	AttributeBegin
+		# Maya Transform : |PalmTree|Leaf10
+		ObjectInstance "|PalmTree|Leaf10"
+	AttributeEnd
+
+	AttributeBegin
+		Texture "checks" "spectrum" "checkerboard"
+				"float uscale" [8] "float vscale" [8]
+				"rgb tex1" [.1 .1 .1] "rgb tex2" [.8 .8 .8]
+		Material "matte" "texture Kd" "checks"
+		Translate 0 0 -1
+		Shape "trianglemesh"
+			"integer indices" [0 1 2 0 2 3]
+			"point P" [ -20 -2.5 -20   20 -2.5 -20   20 -2.5 20   -20 -2.5 20 ]
+			"float st" [ 0 0   1 0    1 1   0 1 ]
+	AttributeEnd
+
+# uniform blue-ish illumination from all directions
+LightSource "infinite" "rgb L" [.4 .45 1]
+
+WorldEnd
