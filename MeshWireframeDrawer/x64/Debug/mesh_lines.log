@@ -1,21 +1,25 @@
 ﻿  main.cpp
-V:\Git\MeshWireframeDrawer\main.cpp(38,25): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
-V:\Git\MeshWireframeDrawer\main.cpp(40,24): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-V:\Git\MeshWireframeDrawer\main.cpp(42,25): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
-V:\Git\MeshWireframeDrawer\main.cpp(44,24): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-V:\Git\MeshWireframeDrawer\main.cpp(51,25): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
-V:\Git\MeshWireframeDrawer\main.cpp(53,24): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-V:\Git\MeshWireframeDrawer\main.cpp(55,25): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
-V:\Git\MeshWireframeDrawer\main.cpp(57,24): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-V:\Git\MeshWireframeDrawer\main.cpp(60,23): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
-V:\Git\MeshWireframeDrawer\main.cpp(67,26): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
-V:\Git\MeshWireframeDrawer\main.cpp(67,23): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
-V:\Git\MeshWireframeDrawer\main.cpp(71,26): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
-V:\Git\MeshWireframeDrawer\main.cpp(71,23): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
-V:\Git\MeshWireframeDrawer\main.cpp(100,20): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-V:\Git\MeshWireframeDrawer\main.cpp(101,20): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-V:\Git\MeshWireframeDrawer\main.cpp(102,20): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-V:\Git\MeshWireframeDrawer\main.cpp(103,20): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-V:\Git\MeshWireframeDrawer\main.cpp(109,14): warning C4101: 'y': unreferenced local variable
-V:\Git\MeshWireframeDrawer\main.cpp(109,11): warning C4101: 'x': unreferenced local variable
+V:\Git\MeshWireframeDrawer\main.cpp(40,25): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+V:\Git\MeshWireframeDrawer\main.cpp(42,24): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+V:\Git\MeshWireframeDrawer\main.cpp(44,25): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+V:\Git\MeshWireframeDrawer\main.cpp(46,24): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+V:\Git\MeshWireframeDrawer\main.cpp(53,25): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+V:\Git\MeshWireframeDrawer\main.cpp(55,24): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+V:\Git\MeshWireframeDrawer\main.cpp(57,25): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+V:\Git\MeshWireframeDrawer\main.cpp(59,24): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+V:\Git\MeshWireframeDrawer\main.cpp(62,23): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+V:\Git\MeshWireframeDrawer\main.cpp(69,26): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+V:\Git\MeshWireframeDrawer\main.cpp(69,23): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+V:\Git\MeshWireframeDrawer\main.cpp(73,26): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+V:\Git\MeshWireframeDrawer\main.cpp(73,23): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+V:\Git\MeshWireframeDrawer\main.cpp(114,22): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+V:\Git\MeshWireframeDrawer\main.cpp(115,22): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+V:\Git\MeshWireframeDrawer\main.cpp(116,22): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+V:\Git\MeshWireframeDrawer\main.cpp(117,22): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+V:\Git\MeshWireframeDrawer\main.cpp(123,44): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+V:\Git\MeshWireframeDrawer\main.cpp(123,40): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+V:\Git\MeshWireframeDrawer\main.cpp(123,36): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+V:\Git\MeshWireframeDrawer\main.cpp(123,32): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+V:\Git\MeshWireframeDrawer\main.cpp(129,14): warning C4101: 'y': unreferenced local variable
+V:\Git\MeshWireframeDrawer\main.cpp(129,11): warning C4101: 'x': unreferenced local variable
   mesh_lines.vcxproj -> V:\Git\MeshWireframeDrawer\x64\Debug\mesh_lines.exe

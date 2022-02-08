@@ -17,12 +17,14 @@ struct line
 {
     int x0, y0;
     int x1, y1;
-    line(int x, int y, int xx, int yy)
+    TGAColor colour;
+    line(int x, int y, int xx, int yy, TGAColor colourin)
     {
         x0 = x;
         y0 = y;
         x1 = xx;
         y1 = yy;
+        colour = colourin;
     }
 
 };
@@ -64,11 +66,11 @@ void drawlineboi(line inputline, TGAImage &image)
 
         if (steep)
         {
-            image.set(y, x, white);
+            image.set(y, x, inputline.colour);
         }
         else
         {
-            image.set(x, y, white);
+            image.set(x, y, inputline.colour);
         }
 
     }
@@ -76,10 +78,11 @@ void drawlineboi(line inputline, TGAImage &image)
 }
 
 int main(int argc, char** argv) {
-    line line1 = line(0, 0, 1000, 1000);
-    line line2 = line(13, 20, 80, 40);
-    line line3 = line(20, 13, 40, 80);
-    line line4 = line(80, 40, 13, 20);
+    
+    //line line1 = line(0, 0, 1000, 1000);
+    //line line2 = line(13, 20, 80, 40);
+    //line line3 = line(20, 13, 40, 80);
+    //line line4 = line(80, 40, 13, 20);
 
     TGAImage image(width, height, TGAImage::RGB);
     if (2 == argc)
@@ -90,27 +93,41 @@ int main(int argc, char** argv) {
     {
         model = new Model("cc.obj");
     }
+
+    TGAColor random2 = TGAColor(0, 1, 0, 255);
+
     for (int i = 0; i < model->nfaces(); i++)
     {
+        if (random2.g < 255)
+        {
+            random2 = TGAColor(0, random2.g + 1, 0, 255);
+        }
+        else
+        {
+            random2 = TGAColor(0, 1, 0, 255);
+        }
         std::vector<int> face = model->face(i);
         for (int j = 0; j < 3; j++)
         {
             Vec3f v0 = model->vert(face[j]);
             Vec3f v1 = model->vert(face[(j + 1) % 3]);
-            int x0 = (v0.x + 1.) * width / 2.;
-            int y0 = (v0.y + 1.) * height / 2.;
-            int x1 = (v1.x + 1.) * width / 2;
-            int y1 = (v1.y + 1.) * height / 2;
-            line ccline = line(x0, y0, x1, y1);
+            float x0 = (v0.x + 1.) * width / 3.;
+            float y0 = (v0.y + 1.) * height / 3.;
+            float x1 = (v1.x + 1.) * width / 3.;
+            float y1 = (v1.y + 1.) * height / 3.;
+            TGAColor random = TGAColor(std::rand() % ((255 + 1) - 0), std::rand() % ((255 + 1) - 0), std::rand() % ((255 + 1) - 0), 255);
+          
+            
+            
+
+            line ccline = line(x0, y0, x1, y1, random2);
+
             drawlineboi(ccline, image);
         }
     }
 
     float x, y;
-    drawlineboi(line1, image);
-    drawlineboi(line2, image);
-    drawlineboi(line3, image);
-    drawlineboi(line4, image);
+
   /*  for (x = line1.x0; x <= line1.x1; x++)
     {
         int t = (x - line1.x0) / (line1.x1 - line1.x0);
