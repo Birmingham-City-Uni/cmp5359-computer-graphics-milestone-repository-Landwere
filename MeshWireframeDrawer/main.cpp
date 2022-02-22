@@ -56,6 +56,8 @@ void line(Vec2i p0, Vec2i p1, TGAImage& image, TGAColor color) {
 
 void triangle(Vec2i t0, Vec2i t1, Vec2i t2, TGAImage& image, TGAColor color)
 {
+
+
     if (t0.y == t1.y && t0.y == t2.y) return;
 
     if (t0.y > t1.y) std::swap(t0, t1);
@@ -94,8 +96,51 @@ void triangle(Vec2i t0, Vec2i t1, Vec2i t2, TGAImage& image, TGAColor color)
             image.set(j, step, color);
         }
     }
-
+       
     
+}
+
+float Barycentric(Vec3f q, Vec3f a, Vec3f b, Vec3f c)
+{
+    Vec3f BA = b - a;
+    Vec3f CA = c - a;
+    Vec3f BACACross = vectorCrossProduct(BA, CA);
+    Vec3f CBQBCross = vectorCrossProduct(c - b, q - b);
+    Vec3f ACQCCross = vectorCrossProduct(a - c, q - c);
+    Vec3f BAQACross = vectorCrossProduct(b - a, q - a);
+    Vec3f BACANormal = BACACross.normalize();
+
+    float areaABC = vectorDotProduct(BACACross, BACANormal);
+    float areaQBC = vectorDotProduct(CBQBCross, CBQBCross.normalize());
+    float areaAQC = vectorDotProduct(ACQCCross, ACQCCross.normalize());
+    float areaABQ = vectorDotProduct(BAQACross, BAQACross.normalize());
+
+    float Alpha = areaQBC / areaABC;
+    float Beta = areaAQC / areaABC;
+    float Gamma = areaABQ / areaABC;
+
+    float x = (Alpha * a.x); +(Beta * b.x) + (Gamma * c.x);
+    float y = (Alpha * a.y); +(Beta * b.y) + (Gamma * c.y);;
+    float z = (Alpha * a.z); +(Beta * b.z) + (Gamma * c.z);;
+
+    float Q = x + y + z;
+    return Q;
+}
+
+float vectorDotProduct(Vec3f a, Vec3f b)
+{
+    float i = (a.x * b.x);
+    float j = (a.y * b.y);      
+    float k = (a.z * b.z);
+    return float( i + j + k);
+}
+
+Vec3f vectorCrossProduct(Vec3f a, Vec3f b )
+{
+        float i = ((a.y * b.z) - (a.z * b.y));
+        float j = ((a.z * b.x) - (a.x - b.z));
+        float k = ((a.x - b.y) - (a.y - b.x));
+        return Vec3f(i, j, k);
 }
 
 //void drawlineboi(lineS inputline, TGAImage &image)
