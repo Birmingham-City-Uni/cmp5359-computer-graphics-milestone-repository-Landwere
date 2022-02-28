@@ -57,7 +57,7 @@ void line(Vec2i p0, Vec2i p1, TGAImage& image, TGAColor color) {
 void triangle(Vec2i t0, Vec2i t1, Vec2i t2, TGAImage& image, TGAColor color)
 {
 
-
+    
     if (t0.y == t1.y && t0.y == t2.y) return;
 
     if (t0.y > t1.y) std::swap(t0, t1);
@@ -65,6 +65,14 @@ void triangle(Vec2i t0, Vec2i t1, Vec2i t2, TGAImage& image, TGAColor color)
     if (t1.y > t2.y) std::swap(t1, t2);
 
     float totalHeight = t2.y - t0.y;
+
+    Vec2i bbox = Vec2i(totalHeight, 500);
+
+    for (float step = t0.y; step < bbox.y; step += 0.01f)
+    {
+
+    }
+
     for (float step = t0.y; step < t1.y; step += 0.01f)
     {
         float segmentHeight = t1.y - t0.y + 1;
@@ -100,6 +108,22 @@ void triangle(Vec2i t0, Vec2i t1, Vec2i t2, TGAImage& image, TGAColor color)
     
 }
 
+float vectorDotProduct(Vec3f a, Vec3f b)
+{
+    float i = (a.x * b.x);
+    float j = (a.y * b.y);
+    float k = (a.z * b.z);
+    return float(i + j + k);
+}
+
+Vec3f vectorCrossProduct(Vec3f a, Vec3f b)
+{
+    float i = ((a.y * b.z) - (a.z * b.y));
+    float j = ((a.z * b.x) - (a.x - b.z));
+    float k = ((a.x - b.y) - (a.y - b.x));
+    return Vec3f(i, j, k);
+}
+
 float Barycentric(Vec3f q, Vec3f a, Vec3f b, Vec3f c)
 {
     Vec3f BA = b - a;
@@ -127,21 +151,7 @@ float Barycentric(Vec3f q, Vec3f a, Vec3f b, Vec3f c)
     return Q;
 }
 
-float vectorDotProduct(Vec3f a, Vec3f b)
-{
-    float i = (a.x * b.x);
-    float j = (a.y * b.y);      
-    float k = (a.z * b.z);
-    return float( i + j + k);
-}
 
-Vec3f vectorCrossProduct(Vec3f a, Vec3f b )
-{
-        float i = ((a.y * b.z) - (a.z * b.y));
-        float j = ((a.z * b.x) - (a.x - b.z));
-        float k = ((a.x - b.y) - (a.y - b.x));
-        return Vec3f(i, j, k);
-}
 
 //void drawlineboi(lineS inputline, TGAImage &image)
 //{
