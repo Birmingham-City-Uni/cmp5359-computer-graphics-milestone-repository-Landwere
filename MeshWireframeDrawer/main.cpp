@@ -3,7 +3,7 @@
 #include "tgaimage.h"
 #include "model.h"
 #include "geometry.h"
-
+#include <iostream>
 const TGAColor white = TGAColor(255, 255, 255, 255);
 const TGAColor red   = TGAColor(255, 0,   0,   255);
 const TGAColor green = TGAColor(0, 255, 0, 255);
@@ -54,59 +54,7 @@ void line(Vec2i p0, Vec2i p1, TGAImage& image, TGAColor color) {
     }
 }
 
-void triangle(Vec2i t0, Vec2i t1, Vec2i t2, TGAImage& image, TGAColor color)
-{
 
-    
-    if (t0.y == t1.y && t0.y == t2.y) return;
-
-    if (t0.y > t1.y) std::swap(t0, t1);
-    if (t0.y > t2.y) std::swap(t0, t2);
-    if (t1.y > t2.y) std::swap(t1, t2);
-
-    float totalHeight = t2.y - t0.y;
-
-    Vec2i bbox = Vec2i(totalHeight, 500);
-
-    for (float step = t0.y; step < bbox.y; step += 0.01f)
-    {
-
-    }
-
-    for (float step = t0.y; step < t1.y; step += 0.01f)
-    {
-        float segmentHeight = t1.y - t0.y + 1;
-        float alpha = (step - t0.y) / totalHeight;
-        float beta = (step - t0.y) / segmentHeight;
-        Vec2i A = t0 + (t2 - t0) * alpha;
-        Vec2i B = t0 + (t1 - t0) * beta;
-       // image.set(A.x, step, red);
-       // image.set(B.x, step, green);
-        if (A.x > B.x) std::swap(A, B);
-        for (int j = A.x; j < B.x; j++)
-        {
-            image.set(j, step, color);
-        }
-    }
-    for (float step = t1.y; step < t2.y; step += 1.0f)
-    {
-        float segmentHeight = t2.y - t1.y + 1;
-        float alpha = (step - t0.y) / totalHeight;
-        float beta = (step - t1.y) / segmentHeight;
-        Vec2i A = t0 + (t2 - t0) * alpha;
-        Vec2i B = t1 + (t2 - t1) * beta;
-        //image.set(A.x, step, red);
-       // image.set(B.x, step, green);
-
-        if (A.x > B.x) std::swap(A, B);
-        for (int j = A.x; j < B.x; j++)
-        {
-            image.set(j, step, color);
-        }
-    }
-       
-    
-}
 
 float vectorDotProduct(Vec3f a, Vec3f b)
 {
@@ -123,8 +71,7 @@ Vec3f vectorCrossProduct(Vec3f a, Vec3f b)
     float k = ((a.x - b.y) - (a.y - b.x));
     return Vec3f(i, j, k);
 }
-
-float Barycentric(Vec3f q, Vec3f a, Vec3f b, Vec3f c)
+Vec3f Barycentric(Vec3f q, Vec3f a, Vec3f b, Vec3f c)
 {
     Vec3f BA = b - a;
     Vec3f CA = c - a;
@@ -139,19 +86,101 @@ float Barycentric(Vec3f q, Vec3f a, Vec3f b, Vec3f c)
     float areaAQC = vectorDotProduct(ACQCCross, ACQCCross.normalize());
     float areaABQ = vectorDotProduct(BAQACross, BAQACross.normalize());
 
-    float Alpha = areaQBC / areaABC;
-    float Beta = areaAQC / areaABC;
-    float Gamma = areaABQ / areaABC;
+    if (areaABC >= 0 && areaABQ >= 0 && areaQBC >= 0)
+    {
+        float Alpha = areaQBC / areaABC;
+        float Beta = areaAQC / areaABC;
+        float Gamma = areaABQ / areaABC;
 
-    float x = (Alpha * a.x); +(Beta * b.x) + (Gamma * c.x);
-    float y = (Alpha * a.y); +(Beta * b.y) + (Gamma * c.y);;
-    float z = (Alpha * a.z); +(Beta * b.z) + (Gamma * c.z);;
+        float x = (Alpha * a.x); +(Beta * b.x) + (Gamma * c.x);
+        float y = (Alpha * a.y); +(Beta * b.y) + (Gamma * c.y);;
+        float z = (Alpha * a.z); +(Beta * b.z) + (Gamma * c.z);;
 
-    float Q = x + y + z;
-    return Q;
+        Vec3f Q = Vec3f(x, y, z);
+        return Q;
+    }
+    else
+    {
+        return Vec3f(-1, -1, -1);
+    }
+   
 }
 
+void triangle(Vec2i t0, Vec2i t1, Vec2i t2, TGAImage& image, TGAColor color)
+{
 
+
+    if (t0.y == t1.y && t0.y == t2.y) return;
+
+    if (t0.x > t1.x) std::swap(t0, t1);
+    if (t0.x > t2.x) std::swap(t0, t2);
+    if (t1.x > t2.x) std::swap(t1, t2);
+
+    float totalWidth = t2.x - t0.x;
+    float minWidth = t0.x;
+
+    if (t0.y > t1.y) std::swap(t0, t1);
+    if (t0.y > t2.y) std::swap(t0, t2);
+    if (t1.y > t2.y) std::swap(t1, t2);
+
+    float totalHeight = t2.y - t0.y;
+    float minHeight = t0.y;
+
+    Vec3f t00 = Vec3f(t0.x, t0.y, 0);
+    Vec3f t11 = Vec3f(t1.x, t1.y, 0);
+    Vec3f t22 = Vec3f(t2.x, t2.y, 0);
+
+
+    Vec2i bbox = Vec2i(totalHeight, totalWidth);
+
+    for (float i = minHeight; i < totalHeight + minHeight; i++)
+    {
+        for (float j = minWidth; j < totalWidth + minWidth; j++)
+        {
+            Vec3f bary = Barycentric(Vec3f(j, i, 0), t00, t11, t22);
+            if (bary.x != -1 && bary.y != -1)
+            {
+                image.set(j, i, color);
+            }
+        }
+    }
+
+
+        
+    //for (float step = t0.y; step < t1.y; step += 0.01f)
+    //{
+    //    float segmentHeight = t1.y - t0.y + 1;
+    //    float alpha = (step - t0.y) / totalHeight;
+    //    float beta = (step - t0.y) / segmentHeight;
+    //    Vec2i A = t0 + (t2 - t0) * alpha;
+    //    Vec2i B = t0 + (t1 - t0) * beta;
+    //   // image.set(A.x, step, red);
+    //   // image.set(B.x, step, green);
+    //    if (A.x > B.x) std::swap(A, B);
+    //    for (int j = A.x; j < B.x; j++)
+    //    {
+    //        image.set(j, step, color);
+    //    }
+    //}
+    //for (float step = t1.y; step < t2.y; step += 1.0f)
+    //{
+    //    float segmentHeight = t2.y - t1.y + 1;
+    //    float alpha = (step - t0.y) / totalHeight;
+    //    float beta = (step - t1.y) / segmentHeight;
+    //    Vec2i A = t0 + (t2 - t0) * alpha;
+    //    Vec2i B = t1 + (t2 - t1) * beta;
+    //    //image.set(A.x, step, red);
+    //   // image.set(B.x, step, green);
+
+    //    if (A.x > B.x) std::swap(A, B);
+    //    for (int j = A.x; j < B.x; j++)
+    //    {
+    //        image.set(j, step, color);
+    //    }
+    //}
+
+
+}
 
 //void drawlineboi(lineS inputline, TGAImage &image)
 //{
