@@ -71,7 +71,7 @@ Vec3f vectorCrossProduct(Vec3f a, Vec3f b)
     float k = ((a.x - b.y) - (a.y - b.x));
     return Vec3f(i, j, k);
 }
-Vec3f Barycentric(Vec3f q, Vec3f a, Vec3f b, Vec3f c)
+Vec3f Barycentric(Vec3f q, Vec3f a, Vec3f b, Vec3f c, TGAImage& image)
 {
     Vec3f BA = b - a;
     Vec3f CA = c - a;
@@ -97,6 +97,7 @@ Vec3f Barycentric(Vec3f q, Vec3f a, Vec3f b, Vec3f c)
         float z = (Alpha * a.z); +(Beta * b.z) + (Gamma * c.z);;
 
         Vec3f Q = Vec3f(x, y, z);
+
         return Q;
     }
     else
@@ -106,42 +107,75 @@ Vec3f Barycentric(Vec3f q, Vec3f a, Vec3f b, Vec3f c)
    
 }
 
-void triangle(Vec2i t0, Vec2i t1, Vec2i t2, TGAImage& image, TGAColor color)
+float edgeFunction(const Vec3f &a, const Vec3f &b, const Vec3f &c)
+{
+    return (c.x - a.x) * (b.y - a.y) - (c.y - a.y) * (b.x - a.x);
+}
+
+void triangle(Vec3f t0, Vec3f t1, Vec3f t2, TGAImage& image, TGAColor color)
 {
 
 
     if (t0.y == t1.y && t0.y == t2.y) return;
 
-    if (t0.x > t1.x) std::swap(t0, t1);
-    if (t0.x > t2.x) std::swap(t0, t2);
-    if (t1.x > t2.x) std::swap(t1, t2);
-
-    float totalWidth = t2.x - t0.x;
-    float minWidth = t0.x;
-
     if (t0.y > t1.y) std::swap(t0, t1);
     if (t0.y > t2.y) std::swap(t0, t2);
     if (t1.y > t2.y) std::swap(t1, t2);
 
-    float totalHeight = t2.y - t0.y;
-    float minHeight = t0.y;
-
-    Vec3f t00 = Vec3f(t0.x, t0.y, 0);
-    Vec3f t11 = Vec3f(t1.x, t1.y, 0);
-    Vec3f t22 = Vec3f(t2.x, t2.y, 0);
+    float yMax = std::max(std::max(t0.y, t1.y), t2.y);
+    float yMin = std::min(std::min(t0.y, t1.y), t2.y);
 
 
-    Vec2i bbox = Vec2i(totalHeight, totalWidth);
+    float xMax = std::max(std::max(t0.x, t1.x), t2.x);
+    float xMin =  std::min(std::min(t0.x, t1.x), t2.x);
 
-    for (float i = minHeight; i < totalHeight + minHeight; i++)
+
+
+
+    uint32_t x0 = std::max(int32_t(0), (int32_t)(std::floor(xMin)));
+    uint32_t x1 = std::min(int32_t(width) - 1, (int32_t)(std::floor(xMax)));
+    uint32_t y0 = std::max(int32_t(0), (int32_t)(std::floor(yMin)));
+    uint32_t y1 = std::min(int32_t(height) - 1, (int32_t)(std::floor(yMax)));
+
+   // Vec2i bbox = Vec2i(xMax, yMax);
+
+    for (uint32_t i = y0; i <= y1; ++i)
     {
-        for (float j = minWidth; j < totalWidth + minWidth; j++)
+        for (uint32_t j = x0; j <= x1; ++j)
         {
-            Vec3f bary = Barycentric(Vec3f(j, i, 0), t00, t11, t22);
-            if (bary.x != -1 && bary.y != -1)
+            Vec3f pixelSample(j + 1.0f, i + 1.0f, 0);
+
+
+            Vec3f BA = t1 - t0;
+            Vec3f CA = t2 - t0;
+            Vec3f BACACross = vectorCrossProduct(BA, CA);
+
+            if (BACACross.z > 0)
+            {
+                std::swap(t1, t2);
+            }
+
+            //calculate the area of the subtriangles 
+            float w0 = edgeFunction(t1, t2, pixelSample);
+            float w1 = edgeFunction(t2, t0, pixelSample);
+            float w2 = edgeFunction(t0, t1, pixelSample);
+
+
+
+            if (w0 >= 0 && w1 >= 0 && w2 >= 0)
             {
                 image.set(j, i, color);
+
             }
+
+           // Vec3f bary = Barycentric(Vec3f(j, i, 0), t00, t11, t22, image);
+
+
+
+          /*  if (bary.x != -1 && bary.y != -1)
+            {*/
+
+            //}
         }
     }
 
@@ -150,7 +184,7 @@ void triangle(Vec2i t0, Vec2i t1, Vec2i t2, TGAImage& image, TGAColor color)
     //for (float step = t0.y; step < t1.y; step += 0.01f)
     //{
     //    float segmentHeight = t1.y - t0.y + 1;
-    //    float alpha = (step - t0.y) / totalHeight;
+    //    float alpha = (step - t0.y) / yMax;
     //    float beta = (step - t0.y) / segmentHeight;
     //    Vec2i A = t0 + (t2 - t0) * alpha;
     //    Vec2i B = t0 + (t1 - t0) * beta;
@@ -165,7 +199,7 @@ void triangle(Vec2i t0, Vec2i t1, Vec2i t2, TGAImage& image, TGAColor color)
     //for (float step = t1.y; step < t2.y; step += 1.0f)
     //{
     //    float segmentHeight = t2.y - t1.y + 1;
-    //    float alpha = (step - t0.y) / totalHeight;
+    //    float alpha = (step - t0.y) / yMax;
     //    float beta = (step - t1.y) / segmentHeight;
     //    Vec2i A = t0 + (t2 - t0) * alpha;
     //    Vec2i B = t1 + (t2 - t1) * beta;
@@ -256,12 +290,12 @@ int main(int argc, char** argv) {
     for (int i = 0; i < model->nfaces(); i++)
     {
         std::vector<int> face = model->face(i);
-        Vec2i screenCoords[3];
+        Vec3f screenCoords[3];
         Vec3f worldCoords[3];
         for (int j = 0; j < 3; j++)
         {
             Vec3f v = model->vert(face[j]);
-                screenCoords[j] = Vec2i((v.x + 1.) * width / 2., (v.y + 1) * height / 2.);
+                screenCoords[j] = Vec3f((v.x + 1.) * width / 2., (v.y + 1) * height / 2., v.z);
                 worldCoords[j] = v;
 
             }
