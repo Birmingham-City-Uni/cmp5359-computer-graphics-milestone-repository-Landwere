@@ -139,23 +139,25 @@ void triangle(Vec3f t0, Vec3f t1, Vec3f t2, TGAImage& image, TGAColor color)
 
    // Vec2i bbox = Vec2i(xMax, yMax);
 
-    for (uint32_t i = y0; i <= y1; ++i)
+    for (uint32_t y = y0; y <= y1; y += 1)
     {
-        for (uint32_t j = x0; j <= x1; ++j)
+        for (uint32_t x = x0; x <= x1; x += 1)
         {
-            Vec3f pixelSample(j + 1.0f, i + 1.0f, 0);
+            Vec3f pixelSample(x + 1.0f, y + 1.0f, 0);
 
 
             Vec3f BA = t1 - t0;
             Vec3f CA = t2 - t0;
             Vec3f BACACross = vectorCrossProduct(BA, CA);
 
-            if (BACACross.z > 0)
+            if (BACACross.x > 0)
             {
-                std::swap(t1, t2);
+                std::swap(t0, t1);
             }
 
-            //calculate the area of the subtriangles 
+
+           
+            //calculate the area of the sub-triangles 
             float w0 = edgeFunction(t1, t2, pixelSample);
             float w1 = edgeFunction(t2, t0, pixelSample);
             float w2 = edgeFunction(t0, t1, pixelSample);
@@ -164,8 +166,7 @@ void triangle(Vec3f t0, Vec3f t1, Vec3f t2, TGAImage& image, TGAColor color)
 
             if (w0 >= 0 && w1 >= 0 && w2 >= 0)
             {
-                image.set(j, i, color);
-
+                image.set(x, y, color);
             }
 
            // Vec3f bary = Barycentric(Vec3f(j, i, 0), t00, t11, t22, image);
@@ -178,6 +179,47 @@ void triangle(Vec3f t0, Vec3f t1, Vec3f t2, TGAImage& image, TGAColor color)
             //}
         }
     }
+    for (uint32_t y = y0; y <= y1; y += 1)
+    {
+        for (uint32_t x = x0; x <= x1; x += 1)
+        {
+            Vec3f pixelSample(x + 1.0f, y + 1.0f, 0);
+
+
+            Vec3f BA = t1 - t0;
+            Vec3f CA = t2 - t0;
+            Vec3f BACACross = vectorCrossProduct(BA, CA);
+
+            if (BACACross.x < 0)
+            {
+                std::swap(t0, t1);
+            }
+
+
+
+            //calculate the area of the sub-triangles 
+            float w0 = edgeFunction(t1, t2, pixelSample);
+            float w1 = edgeFunction(t2, t0, pixelSample);
+            float w2 = edgeFunction(t0, t1, pixelSample);
+
+
+
+            if (w0 >= 0 && w1 >= 0 && w2 >= 0)
+            {
+                image.set(x, y, color);
+            }
+
+            // Vec3f bary = Barycentric(Vec3f(j, i, 0), t00, t11, t22, image);
+
+
+
+           /*  if (bary.x != -1 && bary.y != -1)
+             {*/
+
+             //}
+        }
+    }
+   
 
 
         
@@ -295,7 +337,7 @@ int main(int argc, char** argv) {
         for (int j = 0; j < 3; j++)
         {
             Vec3f v = model->vert(face[j]);
-                screenCoords[j] = Vec3f((v.x + 1.) * width / 2., (v.y + 1) * height / 2., v.z);
+                screenCoords[j] = Vec3f((v.x + 1.0f) * width / 2.0f, (v.y + 1.0f) * height / 2.0f, v.z);
                 worldCoords[j] = v;
 
             }
