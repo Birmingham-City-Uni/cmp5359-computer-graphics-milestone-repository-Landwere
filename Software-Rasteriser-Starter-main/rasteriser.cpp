@@ -11,6 +11,11 @@
 static const float inchToMm = 25.4;
 enum FitResolutionGate { kFill = 0, kOverscan };
 
+float camX = 0.f;
+float camY = 1.f;
+float camZ = 3.f;
+float camAngleX = 0.1f;
+
 // Compute screen coordinates based on a physically-based camera model
 // http://www.scratchapixel.com/lessons/3d-basic-rendering/3d-viewing-pinhole-camera
 void computeScreenCoordinates(
@@ -88,19 +93,27 @@ void convertToRaster(
     // multiple the worldToCamera matrix with the vertexWorld position
     // store the value in vertexCamera
     Vec3f vertexCamera;
-    //worldToCamera * vertexWorld;
-    //vertexCamera.z = 
+    worldToCamera.multVecMatrix(vertexWorld, vertexCamera);
      
     // TASK 2
     // convert to screen space - your implementation here
     // define a Vec2f to store the vertex screen space position (vertexScreen)
     // calculate x and y components for this position from the vertexCamera variable
     
+    Vec2f vertexScreen;
+    vertexScreen.x = near * vertexCamera.x / -vertexCamera.z;
+    vertexScreen.y = near * vertexCamera.y / -vertexCamera.z;
+
+
     // TASK 3
     // now convert point from screen space to NDC space (in range [-1,1])
     // - your implementation here
     // define a new Vec2f to support the NDC position (vertexNDC)
     // calculate this position and store in vertexNDC
+
+    Vec2f vertexNDC;
+    vertexNDC.x = 2 * vertexScreen.x / (r - 1) - (r + 1) / (r - 1);
+    vertexNDC.y = 2 * vertexScreen.y / (t - b) - (t + b) / (t - b);
 
     // TASK 4
     // convert to raster space  - your implementation here
@@ -109,6 +122,13 @@ void convertToRaster(
     // store the z component in vertexRaster as the -ve depth from vertexCamera - used later in depth testing
     // -ve depth actually makes this a positive depth value (as camera looks down -ve z)
     // in raster space y is down so invert direction
+    //Vec3f vertexRaster;
+
+    vertexRaster.x = (vertexCamera.x + 1) / 2 * imageWidth;
+    vertexRaster.y = (1 - vertexScreen.y) / 2 * imageHeight;
+
+    vertexRaster.z = -vertexCamera.z;
+
 }
 
 float min3(const float &a, const float &b, const float &c)
@@ -186,6 +206,20 @@ void putpixel(SDL_Surface* surface, int x, int y, Uint32 pixel)
     }
 }
 
+Vec3f vectorCrossProduct(Vec3f a, Vec3f b)
+{
+    float i = ((a.y * b.z) - (a.z * b.y));
+    float j = ((a.z * b.x) - (a.x * b.z));
+    float k = ((a.x * b.y) - (a.y * b.x));
+    return Vec3f(i, j, k);
+}
+
+Vec3f normalize(Vec3f vec)
+{
+    return vec.normalize();//Vec3f(0, 0, 0);
+        //
+}
+
 Matrix44f lookAt(const Vec3f from, const Vec3f to, const Vec3f _tmp = Vec3f(0, 1, 0))
 {
     // TASK 5
@@ -193,7 +227,29 @@ Matrix44f lookAt(const Vec3f from, const Vec3f to, const Vec3f _tmp = Vec3f(0, 1
 
     Matrix44f camToWorld;
 
+    Vec3f forward = normalize(from - to);
+    
+    //replace with random vec
+
+    Vec3f right = vectorCrossProduct(normalize(_tmp), forward);
+    Vec3f up = vectorCrossProduct(forward, right);
+
+
     // Set the values of the camToWorld matrix
+
+    camToWorld[0][0] = right.x;
+    camToWorld[0][1] = right.y;
+    camToWorld[0][2] = right.z;
+    camToWorld[1][0] = up.x;
+    camToWorld[1][1] = up.y;
+    camToWorld[1][2] = up.z;
+    camToWorld[2][0] = forward.x;
+    camToWorld[2][1] = forward.y;
+    camToWorld[2][2] = forward.z;
+
+    camToWorld[3][0] = from.x;
+    camToWorld[3][1] = from.y;
+    camToWorld[3][2] = from.z;
 
     return camToWorld;
 }
@@ -257,15 +313,19 @@ int main(int argc, char **argv)
         // A stub of this method is within this code and guidance on implementing it is here:
         // https://www.scratchapixel.com/lessons/mathematics-physics-for-computer-graphics/lookat-function
         // For eye, target and up Vec3's you should be able to return a cameraToWorld matrix to invert for a worldToCamera matrix:
-        // Vec3f eye(0.f, 1.f, 3.f);
-        // Vec3f target(0.f, 0.0f, 0.f);
-        // Vec3f up(0.f, 1.f, 0.f);
-        // worldToCamera = lookAt(eye, target, up).inverse();
+
+         Vec3f eye(camX, camY, camZ);
+         Vec3f target(0.f, 0.0f, 0.f);
+         Vec3f up(0.f, 1.f, 0.f);
+         worldToCamera = lookAt(eye, target, up).inverse();
         // now implement the lookAt() method!
 
         // TASK 6 
         // Implement the Arcball Camera to replace Vec3f eye(0.f, 1.f, 3.f); with Vec3f eye(camX, camY, camZ); computed each frame
         // for increments of camAngleX, starting at 0.0f and resetting after incrementing past 360 degrees. 
+
+            
+       
 
         // Outer loop - For every face in the model (would eventually need to be amended to be for every face in every model)
         for (uint32_t i = 0; i < model->nfaces(); ++i) {

@@ -3,7 +3,7 @@ B:\Git\cmp5359-computer-graphics-milestone-repository-Landwere\MeshWireframeDraw
 B:\Git\cmp5359-computer-graphics-milestone-repository-Landwere\MeshWireframeDrawer\main.cpp(95,48): warning C4552: '+': result of expression not used
 B:\Git\cmp5359-computer-graphics-milestone-repository-Landwere\MeshWireframeDrawer\main.cpp(96,48): warning C4552: '+': result of expression not used
 B:\Git\cmp5359-computer-graphics-milestone-repository-Landwere\MeshWireframeDrawer\main.cpp(97,48): warning C4552: '+': result of expression not used
-B:\Git\cmp5359-computer-graphics-milestone-repository-Landwere\MeshWireframeDrawer\main.cpp(386,132): warning C4244: 'argument': conversion from 'float' to 'unsigned char', possible loss of data
-B:\Git\cmp5359-computer-graphics-milestone-repository-Landwere\MeshWireframeDrawer\main.cpp(386,115): warning C4244: 'argument': conversion from 'float' to 'unsigned char', possible loss of data
-B:\Git\cmp5359-computer-graphics-milestone-repository-Landwere\MeshWireframeDrawer\main.cpp(386,99): warning C4244: 'argument': conversion from 'float' to 'unsigned char', possible loss of data
+B:\Git\cmp5359-computer-graphics-milestone-repository-Landwere\MeshWireframeDrawer\main.cpp(350,132): warning C4244: 'argument': conversion from 'float' to 'unsigned char', possible loss of data
+B:\Git\cmp5359-computer-graphics-milestone-repository-Landwere\MeshWireframeDrawer\main.cpp(350,115): warning C4244: 'argument': conversion from 'float' to 'unsigned char', possible loss of data
+B:\Git\cmp5359-computer-graphics-milestone-repository-Landwere\MeshWireframeDrawer\main.cpp(350,99): warning C4244: 'argument': conversion from 'float' to 'unsigned char', possible loss of data
   mesh_lines.vcxproj -> B:\Git\cmp5359-computer-graphics-milestone-repository-Landwere\MeshWireframeDrawer\x64\Debug\mesh_lines.exe
