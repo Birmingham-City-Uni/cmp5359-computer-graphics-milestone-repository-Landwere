@@ -67,8 +67,8 @@ float vectorDotProduct(Vec3f a, Vec3f b)
 Vec3f vectorCrossProduct(Vec3f a, Vec3f b)
 {
     float i = ((a.y * b.z) - (a.z * b.y));
-    float j = ((a.z * b.x) - (a.x - b.z));
-    float k = ((a.x - b.y) - (a.y - b.x));
+    float j = ((a.z * b.x) - (a.x * b.z));
+    float k = ((a.x * b.y) - (a.y * b.x));
     return Vec3f(i, j, k);
 }
 Vec3f Barycentric(Vec3f q, Vec3f a, Vec3f b, Vec3f c, TGAImage& image)

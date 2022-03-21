@@ -1,5 +1,7 @@
 // A practical implementation of the rasterization algorithm in software.
 
+#include<vector>
+#include <cmath>
 #include "geometry.h"
 #include "SDL.h" 
 #include "model.h"
@@ -14,7 +16,8 @@ enum FitResolutionGate { kFill = 0, kOverscan };
 float camX = 0.f;
 float camY = 1.f;
 float camZ = 3.f;
-float camAngleX = 0.1f;
+float camAngleX = 0.0f;
+float camAngleY = 1.0f;
 
 // Compute screen coordinates based on a physically-based camera model
 // http://www.scratchapixel.com/lessons/3d-basic-rendering/3d-viewing-pinhole-camera
@@ -104,7 +107,6 @@ void convertToRaster(
     vertexScreen.x = near * vertexCamera.x / -vertexCamera.z;
     vertexScreen.y = near * vertexCamera.y / -vertexCamera.z;
 
-
     // TASK 3
     // now convert point from screen space to NDC space (in range [-1,1])
     // - your implementation here
@@ -112,7 +114,7 @@ void convertToRaster(
     // calculate this position and store in vertexNDC
 
     Vec2f vertexNDC;
-    vertexNDC.x = 2 * vertexScreen.x / (r - 1) - (r + 1) / (r - 1);
+    vertexNDC.x = 2 * vertexScreen.x / (r - l) - (r + l) / (r - l);
     vertexNDC.y = 2 * vertexScreen.y / (t - b) - (t + b) / (t - b);
 
     // TASK 4
@@ -124,8 +126,8 @@ void convertToRaster(
     // in raster space y is down so invert direction
     //Vec3f vertexRaster;
 
-    vertexRaster.x = (vertexCamera.x + 1) / 2 * imageWidth;
-    vertexRaster.y = (1 - vertexScreen.y) / 2 * imageHeight;
+    vertexRaster.x = (vertexNDC.x + 1) / 2 * imageWidth;
+    vertexRaster.y = (1 - vertexNDC.y) / 2 * imageHeight;
 
     vertexRaster.z = -vertexCamera.z;
 
@@ -229,7 +231,6 @@ Matrix44f lookAt(const Vec3f from, const Vec3f to, const Vec3f _tmp = Vec3f(0, 1
 
     Vec3f forward = normalize(from - to);
     
-    //replace with random vec
 
     Vec3f right = vectorCrossProduct(normalize(_tmp), forward);
     Vec3f up = vectorCrossProduct(forward, right);
@@ -323,9 +324,19 @@ int main(int argc, char **argv)
         // TASK 6 
         // Implement the Arcball Camera to replace Vec3f eye(0.f, 1.f, 3.f); with Vec3f eye(camX, camY, camZ); computed each frame
         // for increments of camAngleX, starting at 0.0f and resetting after incrementing past 360 degrees. 
-
-            
-       
+         float distance = 4.0f;
+         camX = distance * -sin(camAngleX * (M_PI / 180)) * cos((camAngleY) * (M_PI / 180));
+         camY = distance * -sin((camAngleY) * (M_PI / 180));
+         camZ = distance * -cos(camAngleX * (M_PI / 180)) * cos((camAngleY) * (M_PI / 180));
+        
+         if (camAngleX < 360.0f)
+         {
+             camAngleX += 1.0f;
+         }
+         else
+         {
+             camAngleX = 0.0f;
+         }
 
         // Outer loop - For every face in the model (would eventually need to be amended to be for every face in every model)
         for (uint32_t i = 0; i < model->nfaces(); ++i) {
@@ -425,13 +436,16 @@ int main(int argc, char **argv)
 
                             // The final color is the result of the fraction multiplied by the
                             // checkerboard pattern defined in checker.
-                            const int M = 10;
+                            Vec3f light_dir(0, 0, 1);
+                            float intensity = (n.x * light_dir.x) + (n.y * light_dir.y) + (n.z * light_dir.z);
+                            
+                            const int M = 10;   
                             float checker = (fmod(st.x * M, 1.0) > 0.5) ^ (fmod(st.y * M, 1.0) < 0.5);
                             float c = 0.3 * (1 - checker) + 0.7 * checker;
                             nDotView *= c;
 
                             // Set the pixel value on the SDL_Surface that gets drawn to the SDL_Window
-                            Uint32 colour = SDL_MapRGB(screen->format, nDotView * 255, nDotView * 255, nDotView * 255);
+                            Uint32 colour = SDL_MapRGB(screen->format, nDotView  * 255, nDotView  * 255 , nDotView  * 255);
                             putpixel(screen, x, y, colour);
                         }
                     }
