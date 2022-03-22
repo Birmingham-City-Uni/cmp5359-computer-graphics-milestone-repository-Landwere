@@ -61,6 +61,20 @@ struct Sphere
     
 };
 
+struct Plane
+{
+    Vec3 a, b, c, d;
+    Plane(const Vec3& a, const Vec3& b, const Vec3& c, const Vec3& d) : a(a), b(b), c(c), d(d) {}
+
+    bool intersect(const Ray& ray, double& t) const
+    {
+        
+        float x = ray.o.x + t * ray.d.x;
+        float y = ray.o.y + t * ray.d.y;
+
+    }
+};
+
 //method to make sure colours dont go out of the 8 bit range
 void clamp255(Vec3& col)
 {
@@ -78,9 +92,10 @@ int main()
     const Vec3 white(255, 255, 255);
     const Vec3 black(0, 0, 0);
     const Vec3 red(255, 0, 0);
+    const Vec3 green(0, 255, 0);
 
-    const Sphere sphere(Vec3(W * 0.5f, H * 0.5f, 50), 50);
-    const Sphere light(Vec3(0, 0, 50), 1);
+    const Sphere sphere(Vec3(W * 0.5f, H * 0.5f, 50), 100);
+    const Sphere light(Vec3(1000, 0, -50), 1);
 
     std::ofstream out("out.ppm");
     out << "P3\n" << W << ' ' << H << ' ' << "255\n";
@@ -102,7 +117,7 @@ int main()
                 const Vec3 N = sphere.getNormal(pi);
                 const double dt = dot(L.normailize(), N.normailize());
 
-                pix_col = (red + white * dt) * 0.5;
+                pix_col = (green + white * dt) * 0.5;
                 clamp255(pix_col);
             }
             out << (int)pix_col.x << ' ' << (int)pix_col.y << ' ' << (int)pix_col.z << '\n';
