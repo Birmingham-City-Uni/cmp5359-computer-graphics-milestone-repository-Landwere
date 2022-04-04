@@ -35,15 +35,16 @@ Vec3f reflect(const Vec3f& v, const Vec3f& n)
 
 class metal : public material {
 public:
-	metal(const Colour& a) : albedo(a) {}
+	metal(const Colour& a, double f) : albedo(a), fuzz(f < 1 ? f : 1) {}
 
 	virtual bool scatter(const Ray& r_in, const hit_record& rec, Colour& attenuation, Ray& scattered) const override
 	{
 		Vec3f reflected = reflect(r_in.direction().normalize(), rec.normal);
-		scattered = Ray(rec.p, reflected);
+		scattered = Ray(rec.p, reflected + fuzz * Vec3f().random_in_unlit_sphere());
 		attenuation = albedo;
 		return (scattered.direction().dotProduct(rec.normal) > 0);
 	}
 public: 
 	Colour albedo;
+	double fuzz;
 };
