@@ -4,23 +4,41 @@
 class camera {
 public: 
     //image 
-    camera()
+    camera(
+        Point3f lookfrom,
+        Point3f lookat,
+        Vec3f vup,
+        double vfov, //vertical field-of-view
+        double aspect_ratio,
+        double aperture,
+        double focus_dist
+    )
     {
-        const auto aspect_ratio = 16.0 / 9.0;
+        auto theta = degrees_to_radians(vfov);
+        auto h = tan(theta / 2);
 
+        w = (lookfrom - lookat).normalize();
+        u = (vup.crossProduct(w)).normalize();
+        v = w.crossProduct(u);
 
-        //camera
-        auto viewport_height = 2.0;
+        auto viewport_height = 2.0 * h;
         auto viewport_width = aspect_ratio * viewport_height;
-        auto focal_length = 1.0;
-         origin = Point3f(0, 0, 0);
-         horizontal = Vec3f(viewport_width, 0, 0);
-         vertical = Vec3f(0, viewport_height, 0);
-         lower_left_corner = origin - horizontal / 2 - vertical / 2 - Vec3f(0, 0, focal_length);
+
+        origin = lookfrom;
+
+        horizontal = focus_dist * viewport_width * u;
+        vertical = focus_dist * viewport_height * v;
+        lower_left_corner = origin - horizontal / 2 - vertical / 2 - focus_dist * w;
+        lens_radius = aperture / 2;
+
+
+       
     }
-    Ray get_ray(double u, double v) const
+    Ray get_ray(double s, double t) const
     {
-        return Ray(origin, lower_left_corner + u * horizontal + v * vertical - origin);
+        Vec3f rd = lens_radius * Vec3f().random_in_unit_disk();
+        Vec3f offset = u * rd.x + v * rd.y;
+        return Ray(origin + offset, lower_left_corner + s * horizontal + t * vertical - origin - offset);
     }
 
 private:
@@ -28,4 +46,6 @@ private:
     Point3f lower_left_corner;
     Vec3f horizontal;
     Vec3f vertical;
+    Vec3f u, v, w;
+    double lens_radius;
 };
