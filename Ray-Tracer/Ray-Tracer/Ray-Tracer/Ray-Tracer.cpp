@@ -6,6 +6,8 @@
 #include <cmath>
 #include "SDL.h"
 #include <chrono>
+#include <filesystem>
+#include <vector>
 #include "hittable_list.h"
 #include "common.h"
 #include "sphere.h"
@@ -14,14 +16,14 @@
 #include "threadpool.h"
 #include "model.h"
 #include "triangle.h"
-
+#include <string>
 #define M_PI 3.14159265359
 
 SDL_Window* window;
 SDL_Renderer* renderer;
 SDL_Surface* screen;
 
-
+namespace fs = std::filesystem;
 
 
 double hit_sphere(const Point3f& center, double radius, const Ray& r)
@@ -239,21 +241,25 @@ hittable_list test_scene()
 {
     hittable_list world;
 
-    Model* model = new Model("model.obj");
-
+    Model* model = new Model("__Box001__Box001Shape.obj");
+    if (model == NULL)
+    {
+        std::cout << "Model failed to load!" << std::endl;
+    }
     Vec3f transform(0, 0.8, 0);
     auto glass = make_shared<dielectric>(1.5);
 
-    for (uint32_t i = 0; i < model->nfaces(); ++i)
+   /* for (uint32_t i = 0; i < model->nfaces(); ++i)
     {
+        std::cout << "face!" << std::endl;
         const Vec3f& v0 = model->vert(model->face(i)[0]);
         const Vec3f& v1 = model->vert(model->face(i)[1]);
         const Vec3f& v2 = model->vert(model->face(i)[2]);
         world.add(make_shared<triangle>(v0 + transform, v1 + transform, v2 + transform, glass));
-    }
+    }*/
 
-    transform = Vec3f(1.2, 0.8, 0);
-    auto mat_diffuse = make_shared<lambertian>(Colour(0.4, 0.2, 0.1));
+    transform = Vec3f(0, 0, 0);
+    auto mat_diffuse = make_shared<lambertian>(Colour(1, 0, 0));
     for (uint32_t i = 0; i < model->nfaces(); ++i)
     {
         const Vec3f& v0 = model->vert(model->face(i)[0]);
@@ -263,20 +269,54 @@ hittable_list test_scene()
     }
     transform = Vec3f(-1.2, 0.8, 0);
     auto mat_metal = make_shared<metal>(Colour(0.7, 0.6, 0.5), 0.0);
-    for (uint32_t i = 0; i < model->nfaces(); ++i)
+   /* for (uint32_t i = 0; i < model->nfaces(); ++i)
     {
         const Vec3f& v0 = model->vert(model->face(i)[0]);
         const Vec3f& v1 = model->vert(model->face(i)[1]);
         const Vec3f& v2 = model->vert(model->face(i)[2]);
         world.add(make_shared<triangle>(v0 + transform, v1 + transform, v2 + transform, mat_metal));
-    }
+    }*/
 
     auto ground_material = make_shared<lambertian>(Colour(0.5, 0.5, 0.5));
     world.add(make_shared<sphere>(Point3f(0, -1000, 0), 1000, ground_material));
     return world;
 }
 
-void LineRender(SDL_Surface* screen, hittable_list world, int y, int spp, int max_depth, camera* cam) 
+
+
+hittable_list maya_scene()
+{
+    hittable_list world;
+
+    std::string path = "\Models";
+    for (const auto & entry : fs::directory_iterator(path))
+    {
+       std::cout << entry.path() << std::endl;
+       std::string s = entry.path().u8string();
+
+        Model* model = new Model(s.c_str());
+        if (model == NULL)
+        {
+            std::cout << "Model failed to load!" << std::endl;
+        }
+        Vec3f transform = Vec3f(0, 0, 0);
+        auto mat_diffuse = make_shared<lambertian>(Colour(1, 0, 0));
+        for (uint32_t i = 0; i < model->nfaces(); ++i)
+        {
+            const Vec3f& v0 = model->vert(model->face(i)[0]);
+            const Vec3f& v1 = model->vert(model->face(i)[1]);
+            const Vec3f& v2 = model->vert(model->face(i)[2]);
+            world.add(make_shared<triangle>(v0 + transform, v1 + transform, v2 + transform, mat_diffuse));
+        }
+    }
+  
+
+    auto ground_material = make_shared<lambertian>(Colour(0.5, 0.5, 0.5));
+    world.add(make_shared<sphere>(Point3f(0, -1000, 0), 1000, ground_material));
+    return world;
+}
+
+void LineRender(SDL_Surface* screen, hittable_list world, int y, int spp, int max_depth, camera* cam)
 {
     const auto aspect_ratio = 16.0 / 9.0;
     const int image_width = screen->w;
@@ -304,8 +344,21 @@ void LineRender(SDL_Surface* screen, hittable_list world, int y, int spp, int ma
     }
 }
 
+
+
 int main(int argc, char **argv)
 {
+    if (__cplusplus == 201703L)
+        std::cout << "C++17" << std::endl;
+    else if (__cplusplus == 201402L)
+        std::cout << "C++14" << std::endl;
+    else if (__cplusplus == 201103L)
+        std::cout << "C++11" << std::endl;
+    else if (__cplusplus == 199711L)
+        std::cout << "C++98" << std::endl;
+    else
+        std::cout << "pre-standard C++" << std::endl;
+
     init();
 
     //image 
@@ -327,7 +380,7 @@ int main(int argc, char **argv)
     const float scale = 1.f / spp;
     auto R = cos(pi / 4);
     //camera
-    Point3f lookfrom(13, 2, 3);
+    Point3f lookfrom(130, 2, 3);
     Point3f lookat(0, 0, 0);
     Vec3f vup(0, 1, 0);
     auto dist_to_focus = 10;
@@ -335,7 +388,7 @@ int main(int argc, char **argv)
     camera cam(lookfrom, lookat, vup, 20.0, aspect_ratio, apeture, dist_to_focus);
 
     //world
-    auto world = test_scene();
+    auto world = maya_scene();
     //const Sphere sphere(Vec3f(W * 0.5f, H * 0.5f, 50), 100);
     //const Sphere light(Vec3f(1000, 0, -50), 1);
    /* hittable_list world;
