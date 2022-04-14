@@ -28,6 +28,7 @@ inline double random_double(double min, double max)
 	return min + (max - min) * random_double();
 }
 
+
 //common headers 
 #include "ray.h"
 #include "geometry.h"

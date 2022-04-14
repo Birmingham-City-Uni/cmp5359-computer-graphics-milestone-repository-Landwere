@@ -7,10 +7,30 @@ struct hit_record;
 class material {
 public:
 	virtual bool scatter(const Ray& r_in, const hit_record& rec, Colour& attenuation, Ray& scattered) const = 0;
+
+public:
+	static Vec3f reflect(const Vec3f& v, const Vec3f& n)
+	{
+		return v - 2 * v.dotProduct(n) * n;
+	}
+
+	static Vec3f refract(const Vec3f& uv, const Vec3f& n, double etai_over_etat)
+	{
+		auto cos_theta = fmin(-uv.dotProduct(n), 1.0);
+		Vec3f r_out_perp = etai_over_etat * (uv + cos_theta * n);
+		Vec3f r_out_parallel = -sqrt(fabs(1.0 - r_out_perp.norm())) * n;
+		return r_out_perp + r_out_parallel;
+	}
 };
+
+
+
+
+
 
 class lambertian : public material {
 public:
+
 	lambertian(const Colour& a) : albedo(a) {}
 
 	virtual bool scatter(const Ray& r_in, const hit_record& rec, Colour& attenuation, Ray& scattered) const override
@@ -28,12 +48,11 @@ public:
 	Colour albedo;
 };
 
-Vec3f reflect(const Vec3f& v, const Vec3f& n)
-{
-	return v - 2 * v.dotProduct(n) * n;
-}
+
 
 class metal : public material {
+private:
+
 public:
 	metal(const Colour& a, double f) : albedo(a), fuzz(f < 1 ? f : 1) {}
 
@@ -47,15 +66,10 @@ public:
 public:
 	Colour albedo;
 	double fuzz;
+
 };
 
-Vec3f refract(const Vec3f& uv, const Vec3f& n, double etai_over_etat)
-{
-	auto cos_theta = fmin(-uv.dotProduct(n), 1.0);
-	Vec3f r_out_perp = etai_over_etat * (uv + cos_theta * n);
-	Vec3f r_out_parallel = -sqrt(fabs(1.0 - r_out_perp.norm())) * n;
-	return r_out_perp + r_out_parallel;
-}
+
 
 class dielectric : public material {
 public:
@@ -89,6 +103,8 @@ public:
 public:
 	double ir;
 private:
+
+
 	static double reflectance(double cosine, double ref_inx) {
 		//Schlicks approximation
 		auto r0 = (1 - ref_inx) / (1 + ref_inx);

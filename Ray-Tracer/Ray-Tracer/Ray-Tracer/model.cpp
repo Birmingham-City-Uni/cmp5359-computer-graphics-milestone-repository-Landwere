@@ -1,8 +1,8 @@
+
 #include <iostream>
 #include <string>
 #include <fstream>
 #include <sstream>
-#include <vector>
 #include "model.h"
 
 Model::Model(const char *filename) : verts_(), faces_(), vts_() {
@@ -27,6 +27,16 @@ Model::Model(const char *filename) : verts_(), faces_(), vts_() {
             for (int i=0; i<2; i++) iss >> vt[i]; 
             vts_.push_back(vt);
         }
+        //else if (!line.compare(0, 2, "vn ")) { 
+        //    std::vector<int> f;
+        //    int itrash, idx;
+        //    iss >> trash;
+        //    while (iss >> idx >> trash >> itrash >> trash >> itrash) { // read in v_i to idx and discard /vt_i/vn_i
+        //        idx--; // in wavefront obj all indices start at 1, not zero, we need them to start at zero
+        //        f.push_back(idx);
+        //    }
+        //    faces_.push_back(f);
+        //}
         else if (!line.compare(0, 2, "f ")) { // f v1/vt1/vn1 v2/vt2/vn2 v3/vt3/vn3 ... making assumption v1==vt1 etc.
             std::vector<int> f;
             int itrash, idx;
@@ -44,6 +54,9 @@ Model::Model(const char *filename) : verts_(), faces_(), vts_() {
 Model::~Model() {
 }
 
+
+
+
 int Model::nverts() {
     return (int)verts_.size();
 }
@@ -55,6 +68,8 @@ int Model::nfaces() {
 std::vector<int> Model::face(int idx) {
     return faces_[idx];
 }
+
+
 
 Vec3f Model::vert(int i) {
     return verts_[i];

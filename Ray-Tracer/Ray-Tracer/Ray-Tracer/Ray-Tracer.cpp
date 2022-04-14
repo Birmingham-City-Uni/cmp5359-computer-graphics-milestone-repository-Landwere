@@ -4,10 +4,11 @@
 #include <iostream>
 #include <fstream>
 #include <cmath>
-#include "SDL.h"
 #include <chrono>
 #include <filesystem>
 #include <vector>
+#include <string>
+#include "SDL.h"
 #include "hittable_list.h"
 #include "common.h"
 #include "sphere.h"
@@ -16,7 +17,7 @@
 #include "threadpool.h"
 #include "model.h"
 #include "triangle.h"
-#include <string>
+
 #define M_PI 3.14159265359
 
 SDL_Window* window;
@@ -183,7 +184,7 @@ void init()
 {
     SDL_Init(SDL_INIT_VIDEO);
 
-    SDL_Window* window = SDL_CreateWindow("Cory's Software Ray Tracer", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, 0);
+    SDL_Window* window = SDL_CreateWindow("Cory's Software Ray Tracer", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 360, 0);
 
     screen = SDL_GetWindowSurface(window);
 
@@ -282,34 +283,62 @@ hittable_list test_scene()
     return world;
 }
 
-
-
+const int modelArraySize = 34;
+Model* modelArray[modelArraySize];
 hittable_list maya_scene()
 {
+    //materials
+    auto purple_mat_diffuse = make_shared<lambertian>(Colour(0.140f, 0.122f, 0.230f));
+    auto brown_mat_diffuse = make_shared<lambertian>(Colour(0.150f, 0.75f, 0));
+    auto glass = make_shared<dielectric>(1.5);
+    auto mat_metal = make_shared<metal>(Colour(0.7, 0.6, 0.5), 0.0);
+
     hittable_list world;
 
     std::string path = "\Models";
+
+    int iteration = 0;
     for (const auto & entry : fs::directory_iterator(path))
     {
        std::cout << entry.path() << std::endl;
        std::string s = entry.path().u8string();
 
-        Model* model = new Model(s.c_str());
-        if (model == NULL)
+       modelArray[iteration] = new Model(s.c_str());
+        //Model* model = new Model(s.c_str());
+        if (modelArray[iteration] == NULL)
         {
             std::cout << "Model failed to load!" << std::endl;
         }
-        Vec3f transform = Vec3f(0, 0, 0);
-        auto mat_diffuse = make_shared<lambertian>(Colour(1, 0, 0));
-        for (uint32_t i = 0; i < model->nfaces(); ++i)
-        {
-            const Vec3f& v0 = model->vert(model->face(i)[0]);
-            const Vec3f& v1 = model->vert(model->face(i)[1]);
-            const Vec3f& v2 = model->vert(model->face(i)[2]);
-            world.add(make_shared<triangle>(v0 + transform, v1 + transform, v2 + transform, mat_diffuse));
-        }
+        modelArray[iteration]->setMat(purple_mat_diffuse);
+        iteration++;
     }
-  
+
+
+    //Change textures
+    modelArray[33]->setMat(brown_mat_diffuse);
+    modelArray[26]->setMat(mat_metal);
+    modelArray[29]->setMat(glass);
+    modelArray[30]->setMat(glass);
+    modelArray[31]->setMat(glass);
+
+    //add to world
+    Vec3f transform = Vec3f(0, 0, 0);
+    iteration = 0;
+    for (int i = 0; i < modelArraySize; ++i)
+    {
+        if (modelArray[i] != NULL)
+        {
+            for (uint32_t i = 0; i < modelArray[iteration]->nfaces(); ++i)
+            {
+                const Vec3f& v0 = modelArray[iteration]->vert(modelArray[iteration]->face(i)[0]);
+                const Vec3f& v1 = modelArray[iteration]->vert(modelArray[iteration]->face(i)[1]);
+                const Vec3f& v2 = modelArray[iteration]->vert(modelArray[iteration]->face(i)[2]);
+                world.add(make_shared<triangle>(v0 + transform, v1 + transform, v2 + transform, modelArray[iteration]->getMat()));
+            }
+        }
+        else std::cout << "Empty model in array" << std::endl;
+            iteration++;
+    }
 
     auto ground_material = make_shared<lambertian>(Colour(0.5, 0.5, 0.5));
     world.add(make_shared<sphere>(Point3f(0, -1000, 0), 1000, ground_material));
@@ -367,24 +396,26 @@ int main(int argc, char **argv)
     const int image_height = static_cast<int>(image_width / aspect_ratio);
     const int max_depth = 50;
 
-    const int H = 500;
-    const int W = 500;
+    const int H = 640;
+    const int W = 480;
 
     const Vec3f white(255, 255, 255);
     const Vec3f black(0, 0, 0);
     const Vec3f red(255, 0, 0);
     const Vec3f green(0, 255, 0);
 
-    const int spp = 4;
+    const int spp = 1;
     //image 
     const float scale = 1.f / spp;
     auto R = cos(pi / 4);
     //camera
-    Point3f lookfrom(130, 2, 3);
-    Point3f lookat(0, 0, 0);
+    Point3f lookfrom(-17.678873, 84.315444, 74.007110);
+    Point3f lookat(-2.243758, 84.315444, 39.339274);
+   // Point3f lookfrom(2, 13, 0);
+   // Point3f lookat(0, 0, 0);
     Vec3f vup(0, 1, 0);
-    auto dist_to_focus = 10;
-    auto apeture = 0.15;
+    auto dist_to_focus = 100;
+    auto apeture = 0.05;
     camera cam(lookfrom, lookat, vup, 20.0, aspect_ratio, apeture, dist_to_focus);
 
     //world
@@ -407,8 +438,7 @@ int main(int argc, char **argv)
    /* world.add(make_shared<sphere>(Point3f(-R, 0, -1), R, material_blue));
     world.add(make_shared<sphere>(Point3f(R, 0, -1), R, material_red));*/
 
-    std::ofstream out("out.ppm");
-    out << "P3\n" << W << ' ' << H << ' ' << "255\n";
+
 
     double t;
 
@@ -441,6 +471,7 @@ int main(int argc, char **argv)
     auto passedTime = std::chrono::duration<double, std::milli>(t_end - t_start).count();
     std::cerr << "Frame render time:  " << passedTime << " ms" << std::endl;
 
+
     SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, screen);
     if (texture == NULL) {
         fprintf(stderr, "CreateTextureFromSurface failed: %s\n", SDL_GetError());
@@ -450,6 +481,10 @@ int main(int argc, char **argv)
 
     SDL_RenderCopyEx(renderer, texture, NULL, NULL, 0, 0, SDL_FLIP_VERTICAL);
     SDL_RenderPresent(renderer);
+
+
+    std::ofstream out("out.ppm");
+    out << "P3\n" << W << ' ' << H << ' ' << "255\n";
 
     SDL_DestroyTexture(texture);
 
