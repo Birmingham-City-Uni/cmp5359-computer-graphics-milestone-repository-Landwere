@@ -2,6 +2,9 @@
 
 #include<vector>
 #include <cmath>
+#include <iostream>
+#include <filesystem>
+
 #include "geometry.h"
 #include "SDL.h" 
 #include "model.h"
@@ -13,9 +16,9 @@
 static const float inchToMm = 25.4;
 enum FitResolutionGate { kFill = 0, kOverscan };
 
-float camX = 0.f;
-float camY = 1.f;
-float camZ = 3.f;
+float camX = -17.678873;
+float camY = 84.315444;
+float camZ = 74.007110;
 float camAngleX = 0.0f;
 float camAngleY = 1.0f;
 
@@ -148,7 +151,7 @@ Matrix44f worldToCamera;
 
 const float nearClippingPlane = 1;
 const float farClippingPlane = 1000;
-float focalLength = 20; // in mm
+float focalLength = 35; // in mm
 // 35mm Full Aperture in inches
 float filmApertureWidth = 0.980;
 float filmApertureHeight = 0.735;
@@ -259,12 +262,31 @@ Model* model = nullptr;
 
 int main(int argc, char **argv)
 {
+    const int modelArraySize = 32;
+    Model* modelArray[modelArraySize];
+    namespace fs = std::filesystem;
     // load model
     if (2 == argc) {
         model = new Model(argv[1]);
     }
     else {
-        model = new Model("cc_t.obj");
+        std::string path = "\Models";
+
+        int iteration = 0;
+        for (const auto& entry : fs::directory_iterator(path))
+        {
+                std::cout << entry.path() << std::endl;
+                std::string s = entry.path().u8string();
+
+                modelArray[iteration] = new Model(s.c_str());
+                //Model* model = new Model(s.c_str());
+                if (modelArray[iteration] == NULL)
+                {
+                    std::cout << "Model failed to load!" << std::endl;
+                }
+                iteration++;
+            }
+       // model = new Model("cc_t.obj");
     }
 
     // initialise SDL2
@@ -316,7 +338,7 @@ int main(int argc, char **argv)
         // For eye, target and up Vec3's you should be able to return a cameraToWorld matrix to invert for a worldToCamera matrix:
 
          Vec3f eye(camX, camY, camZ);
-         Vec3f target(0.f, 0.0f, 0.f);
+         Vec3f target(-2.243758, 84.315444, 39.339274);
          Vec3f up(0.f, 1.f, 0.f);
          worldToCamera = lookAt(eye, target, up).inverse();
         // now implement the lookAt() method!
@@ -325,132 +347,142 @@ int main(int argc, char **argv)
         // Implement the Arcball Camera to replace Vec3f eye(0.f, 1.f, 3.f); with Vec3f eye(camX, camY, camZ); computed each frame
         // for increments of camAngleX, starting at 0.0f and resetting after incrementing past 360 degrees. 
          float distance = 4.0f;
-         camX = distance * -sin(camAngleX * (M_PI / 180)) * cos((camAngleY) * (M_PI / 180));
+        /* camX = distance * -sin(camAngleX * (M_PI / 180)) * cos((camAngleY) * (M_PI / 180));
          camY = distance * -sin((camAngleY) * (M_PI / 180));
-         camZ = distance * -cos(camAngleX * (M_PI / 180)) * cos((camAngleY) * (M_PI / 180));
+         camZ = distance * -cos(camAngleX * (M_PI / 180)) * cos((camAngleY) * (M_PI / 180));*/
         
          if (camAngleX < 360.0f)
          {
-             camAngleX += 1.0f;
+             //camAngleX += 1.0f;
          }
          else
          {
              camAngleX = 0.0f;
          }
-
+         
         // Outer loop - For every face in the model (would eventually need to be amended to be for every face in every model)
-        for (uint32_t i = 0; i < model->nfaces(); ++i) {
-            // v0, v1 and v2 store the vertex positions of every vertex of the 3D model
-            const Vec3f& v0 = model->vert(model->face(i)[0]);
-            const Vec3f& v1 = model->vert(model->face(i)[1]);
-            const Vec3f& v2 = model->vert(model->face(i)[2]);
+         for (int j = 0; j < modelArraySize; j++)
+         {
 
-            // Convert the vertices of the triangle to raster space - you will need to implement convertToRaster()
-            Vec3f v0Raster, v1Raster, v2Raster;
-            convertToRaster(v0, worldToCamera, l, r, t, b, nearClippingPlane, imageWidth, imageHeight, v0Raster);
-            convertToRaster(v1, worldToCamera, l, r, t, b, nearClippingPlane, imageWidth, imageHeight, v1Raster);
-            convertToRaster(v2, worldToCamera, l, r, t, b, nearClippingPlane, imageWidth, imageHeight, v2Raster);
 
-            // Precompute reciprocal of vertex z-coordinate
-            v0Raster.z = 1 / v0Raster.z,
-                v1Raster.z = 1 / v1Raster.z,
-                v2Raster.z = 1 / v2Raster.z;
+             for (uint32_t i = 0; i < modelArray[j]->nfaces(); ++i) {
+                 // v0, v1 and v2 store the vertex positions of every vertex of the 3D model
+                 const Vec3f& v0 = modelArray[j]->vert(modelArray[j]->face(i)[0]);
+                 const Vec3f& v1 = modelArray[j]->vert(modelArray[j]->face(i)[1]);
+                 const Vec3f& v2 = modelArray[j]->vert(modelArray[j]->face(i)[2]);
 
-            // Prepare vertex attributes. Divide them by their vertex z-coordinate
-            // (though we use a multiplication here because v.z = 1 / v.z)
-            // st0, st1 and st2 store the texture coordinates from the model of each vertex
-            Vec2f st0 = model->vt(model->face(i)[0]);
-            Vec2f st1 = model->vt(model->face(i)[1]);
-            Vec2f st2 = model->vt(model->face(i)[2]);
-            st0 *= v0Raster.z, st1 *= v1Raster.z, st2 *= v2Raster.z;
 
-            // Calculate the bounding box of the triangle defined by the vertices
-            float xmin = min3(v0Raster.x, v1Raster.x, v2Raster.x);
-            float ymin = min3(v0Raster.y, v1Raster.y, v2Raster.y);
-            float xmax = max3(v0Raster.x, v1Raster.x, v2Raster.x);
-            float ymax = max3(v0Raster.y, v1Raster.y, v2Raster.y);
+                 // Convert the vertices of the triangle to raster space - you will need to implement convertToRaster()
+                 Vec3f v0Raster, v1Raster, v2Raster;
+                 convertToRaster(v0, worldToCamera, l, r, t, b, nearClippingPlane, imageWidth, imageHeight, v0Raster);
+                 convertToRaster(v1, worldToCamera, l, r, t, b, nearClippingPlane, imageWidth, imageHeight, v1Raster);
+                 convertToRaster(v2, worldToCamera, l, r, t, b, nearClippingPlane, imageWidth, imageHeight, v2Raster);
 
-            // the triangle is out of screen
-            if (xmin > imageWidth - 1 || xmax < 0 || ymin > imageHeight - 1 || ymax < 0) continue;
+                 // Precompute reciprocal of vertex z-coordinate
+                 v0Raster.z = 1 / v0Raster.z,
+                     v1Raster.z = 1 / v1Raster.z,
+                     v2Raster.z = 1 / v2Raster.z;
 
-            // sets the bounds of the rectangle for the raster triangle
-            // be careful xmin/xmax/ymin/ymax can be negative. Don't cast to uint32_t
-            uint32_t x0 = std::max(int32_t(0), (int32_t)(std::floor(xmin)));
-            uint32_t x1 = std::min(int32_t(imageWidth) - 1, (int32_t)(std::floor(xmax)));
-            uint32_t y0 = std::max(int32_t(0), (int32_t)(std::floor(ymin)));
-            uint32_t y1 = std::min(int32_t(imageHeight) - 1, (int32_t)(std::floor(ymax)));
-            // calculates the area of the triangle, used in determining barycentric coordinates
-            float area = edgeFunction(v0Raster, v1Raster, v2Raster);
+                 // Prepare vertex attributes. Divide them by their vertex z-coordinate
+                 // (though we use a multiplication here because v.z = 1 / v.z)
+                 // st0, st1 and st2 store the texture coordinates from the model of each vertex
+                 Vec2f st0 = modelArray[j]->vt(modelArray[j]->face(i)[0]);
+                 Vec2f st1 = modelArray[j]->vt(modelArray[j]->face(i)[1]);
+                 Vec2f st2 = modelArray[j]->vt(modelArray[j]->face(i)[2]);
+                 st0 *= v0Raster.z, st1 *= v1Raster.z, st2 *= v2Raster.z;
 
-            // Inner loop - for every pixel of the bounding box enclosing the triangle
-            for (uint32_t y = y0; y <= y1; ++y) {
-                for (uint32_t x = x0; x <= x1; ++x) {
-                    Vec3f pixelSample(x + 0.5, y + 0.5, 0); // You could use multiple pixel samples for antialiasing!!
-                    // Calculate the area of the subtriangles for barycentric coordinates
-                    float w0 = edgeFunction(v1Raster, v2Raster, pixelSample);
-                    float w1 = edgeFunction(v2Raster, v0Raster, pixelSample);
-                    float w2 = edgeFunction(v0Raster, v1Raster, pixelSample);
-                    if (w0 >= 0 && w1 >= 0 && w2 >= 0) {
-                        // divide by the area to give us our coefficients
-                        w0 /= area;
-                        w1 /= area;
-                        w2 /= area;
-                        float oneOverZ = v0Raster.z * w0 + v1Raster.z * w1 + v2Raster.z * w2; // reciprocal for depth testing
-                        float z = 1 / oneOverZ;
-                        // Depth-buffer test
-                        if (z < depthBuffer[y * imageWidth + x]) { // is this triangle closer than others previously?
-                            depthBuffer[y * imageWidth + x] = z;
+                 // Calculate the bounding box of the triangle defined by the vertices
+                 float xmin = min3(v0Raster.x, v1Raster.x, v2Raster.x);
+                 float ymin = min3(v0Raster.y, v1Raster.y, v2Raster.y);
+                 float xmax = max3(v0Raster.x, v1Raster.x, v2Raster.x);
+                 float ymax = max3(v0Raster.y, v1Raster.y, v2Raster.y);
 
-                            // Calculate the texture coordinate based on barycentric position of the pixel
-                            Vec2f st = st0 * w0 + st1 * w1 + st2 * w2;
+                 // the triangle is out of screen
+                 if (xmin > imageWidth - 1 || xmax < 0 || ymin > imageHeight - 1 || ymax < 0) continue;
 
-                            // correct for perspective distortion
-                            st *= z;
+                 // sets the bounds of the rectangle for the raster triangle
+                 // be careful xmin/xmax/ymin/ymax can be negative. Don't cast to uint32_t
+                 uint32_t x0 = std::max(int32_t(0), (int32_t)(std::floor(xmin)));
+                 uint32_t x1 = std::min(int32_t(imageWidth) - 1, (int32_t)(std::floor(xmax)));
+                 uint32_t y0 = std::max(int32_t(0), (int32_t)(std::floor(ymin)));
+                 uint32_t y1 = std::min(int32_t(imageHeight) - 1, (int32_t)(std::floor(ymax)));
+                 // calculates the area of the triangle, used in determining barycentric coordinates
+                 float area = edgeFunction(v0Raster, v1Raster, v2Raster);
 
-                            // If you need to compute the actual position of the shaded
-                            // point in camera space. Proceed like with the other vertex attribute.
-                            // Divide the point coordinates by the vertex z-coordinate then
-                            // interpolate using barycentric coordinates and finally multiply
-                            // by sample depth.
-                            Vec3f v0Cam, v1Cam, v2Cam;
-                            worldToCamera.multVecMatrix(v0, v0Cam);
-                            worldToCamera.multVecMatrix(v1, v1Cam);
-                            worldToCamera.multVecMatrix(v2, v2Cam);
+                 // Inner loop - for every pixel of the bounding box enclosing the triangle
+                 for (uint32_t y = y0; y <= y1; ++y) {
+                     for (uint32_t x = x0; x <= x1; ++x) {
+                         Vec3f pixelSample(x + 0.5, y + 0.5, 0); // You could use multiple pixel samples for antialiasing!!
+                         // Calculate the area of the subtriangles for barycentric coordinates
+                         float w0 = edgeFunction(v1Raster, v2Raster, pixelSample);
+                         float w1 = edgeFunction(v2Raster, v0Raster, pixelSample);
+                         float w2 = edgeFunction(v0Raster, v1Raster, pixelSample);
+                         if (w0 >= 0 && w1 >= 0 && w2 >= 0) {
+                             // divide by the area to give us our coefficients
+                             w0 /= area;
+                             w1 /= area;
+                             w2 /= area;
+                             float oneOverZ = v0Raster.z * w0 + v1Raster.z * w1 + v2Raster.z * w2; // reciprocal for depth testing
+                             float z = 1 / oneOverZ;
+                             // Depth-buffer test
+                             if (z < depthBuffer[y * imageWidth + x]) { // is this triangle closer than others previously?
+                                 depthBuffer[y * imageWidth + x] = z;
 
-                            float px = (v0Cam.x / -v0Cam.z) * w0 + (v1Cam.x / -v1Cam.z) * w1 + (v2Cam.x / -v2Cam.z) * w2;
-                            float py = (v0Cam.y / -v0Cam.z) * w0 + (v1Cam.y / -v1Cam.z) * w1 + (v2Cam.y / -v2Cam.z) * w2;
+                                 // Calculate the texture coordinate based on barycentric position of the pixel
+                                 Vec2f st = st0 * w0 + st1 * w1 + st2 * w2;
 
-                            Vec3f pt(px * z, py * z, -z); // pt is in camera space
+                                 // correct for perspective distortion
+                                 st *= z;
 
-                            // Compute the face normal which is used for a simple facing ratio.
-                            // Keep in mind that we are doing all calculation in camera space.
-                            // Thus the view direction can be computed as the point on the object
-                            // in camera space minus Vec3f(0), the position of the camera in camera space.
-                            Vec3f n = (v1Cam - v0Cam).crossProduct(v2Cam - v0Cam);
-                            n.normalize();
-                            Vec3f viewDirection = -pt;
-                            viewDirection.normalize();
+                                 // If you need to compute the actual position of the shaded
+                                 // point in camera space. Proceed like with the other vertex attribute.
+                                 // Divide the point coordinates by the vertex z-coordinate then
+                                 // interpolate using barycentric coordinates and finally multiply
+                                 // by sample depth.
+                                 Vec3f v0Cam, v1Cam, v2Cam;
+                                 worldToCamera.multVecMatrix(v0, v0Cam);
+                                 worldToCamera.multVecMatrix(v1, v1Cam);
+                                 worldToCamera.multVecMatrix(v2, v2Cam);
 
-                            // Calculate shading of the surface based on dot product of the normal and view direction
-                            float nDotView = std::max(0.f, n.dotProduct(viewDirection));
+                                 float px = (v0Cam.x / -v0Cam.z) * w0 + (v1Cam.x / -v1Cam.z) * w1 + (v2Cam.x / -v2Cam.z) * w2;
+                                 float py = (v0Cam.y / -v0Cam.z) * w0 + (v1Cam.y / -v1Cam.z) * w1 + (v2Cam.y / -v2Cam.z) * w2;
 
-                            // The final color is the result of the fraction multiplied by the
-                            // checkerboard pattern defined in checker.
-                            Vec3f light_dir(0, 0, 1);
-                            float intensity = (n.x * light_dir.x) + (n.y * light_dir.y) + (n.z * light_dir.z);
-                            
-                            const int M = 10;   
-                            float checker = (fmod(st.x * M, 1.0) > 0.5) ^ (fmod(st.y * M, 1.0) < 0.5);
-                            float c = 0.3 * (1 - checker) + 0.7 * checker;
-                            nDotView *= c;
+                                 Vec3f pt(px * z, py * z, -z); // pt is in camera space
 
-                            // Set the pixel value on the SDL_Surface that gets drawn to the SDL_Window
-                            Uint32 colour = SDL_MapRGB(screen->format, nDotView  * 255, nDotView  * 255 , nDotView  * 255);
-                            putpixel(screen, x, y, colour);
-                        }
-                    }
-                }
-            }
+                                 // Compute the face normal which is used for a simple facing ratio.
+                                 // Keep in mind that we are doing all calculation in camera space.
+                                 // Thus the view direction can be computed as the point on the object
+                                 // in camera space minus Vec3f(0), the position of the camera in camera space.
+                                
+                                 //Vec3f n = (v1Cam - v0Cam).crossProduct(v2Cam - v0Cam);
+                                 Vec3f n = modelArray[j]->vn(i)[0];
+
+                                 n.normalize();
+                                 Vec3f viewDirection = -pt;
+                                 viewDirection.normalize();
+
+                                 // Calculate shading of the surface based on dot product of the normal and view direction
+                                 float nDotView = std::max(0.f, n.dotProduct(viewDirection));
+
+                                 // The final colour is the result of the fraction multiplied by the
+                                 // checkerboard pattern defined in checker.
+                                 Vec3f light_dir(0, 0, 1);
+                                 float intensity = (n.x * light_dir.x) + (n.y * light_dir.y) + (n.z * light_dir.z);
+
+                                 const int M = 10;
+                                 float checker = (fmod(st.x * M, 1.0) > 0.5) ^ (fmod(st.y * M, 1.0) < 0.5);
+                                 float c = 0.3 * (1 - checker) + 0.7 * checker;
+                                 nDotView *= c;
+
+                                 // Set the pixel value on the SDL_Surface that gets drawn to the SDL_Window
+                                 Uint32 colour = SDL_MapRGB(screen->format, nDotView * 255, nDotView * 255, nDotView * 255);
+                                 putpixel(screen, x, y, colour);
+                             }
+                         }
+                     }
+                 }
+         }
+        
         }
 
         // Calculate frame interval timing

@@ -266,7 +266,7 @@ hittable_list test_scene()
         const Vec3f& v0 = model->vert(model->face(i)[0]);
         const Vec3f& v1 = model->vert(model->face(i)[1]);
         const Vec3f& v2 = model->vert(model->face(i)[2]);
-        world.add(make_shared<triangle>(v0 + transform, v1 + transform, v2 + transform, mat_diffuse));
+        world.add(make_shared<triangle>(v0 + transform, v1 + transform, v2 + transform ,mat_diffuse));
     }
     transform = Vec3f(-1.2, 0.8, 0);
     auto mat_metal = make_shared<metal>(Colour(0.7, 0.6, 0.5), 0.0);
@@ -300,26 +300,42 @@ hittable_list maya_scene()
     int iteration = 0;
     for (const auto & entry : fs::directory_iterator(path))
     {
-       std::cout << entry.path() << std::endl;
-       std::string s = entry.path().u8string();
-
-       modelArray[iteration] = new Model(s.c_str());
-        //Model* model = new Model(s.c_str());
-        if (modelArray[iteration] == NULL)
+        if (iteration == 31)
         {
-            std::cout << "Model failed to load!" << std::endl;
+            std::cout << entry.path() << std::endl;
+            std::string s = entry.path().u8string();
+
+            modelArray[iteration] = new Model(s.c_str());
+            //Model* model = new Model(s.c_str());
+            if (modelArray[iteration] == NULL)
+            {
+                std::cout << "Model failed to load!" << std::endl;
+            }
+            modelArray[iteration]->setMat(glass);
         }
-        modelArray[iteration]->setMat(purple_mat_diffuse);
+        if (iteration == 26)
+        {
+            std::cout << entry.path() << std::endl;
+            std::string s = entry.path().u8string();
+
+            modelArray[iteration] = new Model(s.c_str());
+            //Model* model = new Model(s.c_str());
+            if (modelArray[iteration] == NULL)
+            {
+                std::cout << "Model failed to load!" << std::endl;
+            }
+            modelArray[iteration]->setMat(mat_metal);
+        }
         iteration++;
     }
 
 
     //Change textures
-    modelArray[33]->setMat(brown_mat_diffuse);
+   /* modelArray[33]->setMat(brown_mat_diffuse);
     modelArray[26]->setMat(mat_metal);
     modelArray[29]->setMat(glass);
     modelArray[30]->setMat(glass);
-    modelArray[31]->setMat(glass);
+    modelArray[31]->setMat(glass);*/
 
     //add to world
     Vec3f transform = Vec3f(0, 0, 0);
@@ -333,7 +349,8 @@ hittable_list maya_scene()
                 const Vec3f& v0 = modelArray[iteration]->vert(modelArray[iteration]->face(i)[0]);
                 const Vec3f& v1 = modelArray[iteration]->vert(modelArray[iteration]->face(i)[1]);
                 const Vec3f& v2 = modelArray[iteration]->vert(modelArray[iteration]->face(i)[2]);
-                world.add(make_shared<triangle>(v0 + transform, v1 + transform, v2 + transform, modelArray[iteration]->getMat()));
+
+                world.add(make_shared<triangle>(v0 + transform, v1 + transform, v2 + transform,modelArray[iteration]->vn(i) ,modelArray[iteration]->getMat()));
             }
         }
         else std::cout << "Empty model in array" << std::endl;
@@ -404,7 +421,7 @@ int main(int argc, char **argv)
     const Vec3f red(255, 0, 0);
     const Vec3f green(0, 255, 0);
 
-    const int spp = 1;
+    const int spp = 5;
     //image 
     const float scale = 1.f / spp;
     auto R = cos(pi / 4);
@@ -416,7 +433,7 @@ int main(int argc, char **argv)
     Vec3f vup(0, 1, 0);
     auto dist_to_focus = 100;
     auto apeture = 0.05;
-    camera cam(lookfrom, lookat, vup, 20.0, aspect_ratio, apeture, dist_to_focus);
+    camera cam(lookfrom, lookat, vup,25 /*54.43*/, aspect_ratio, apeture, dist_to_focus);
 
     //world
     auto world = maya_scene();

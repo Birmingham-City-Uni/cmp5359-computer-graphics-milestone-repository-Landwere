@@ -28,7 +28,8 @@ bool triangle::hit(const Ray& r, double t_min, double t_max, hit_record& rec) co
 
 	Vec3<float> v0v1 = v1 - v0;
 	Vec3<float> v0v2 = v2 - v0;
-	Vec3<float> pvec = r.direction().crossProduct(v0v2);
+	Vec3<float> pvec = r.direction().crossProduct(v0v2); //N
+	
 
 	float det = pvec.dotProduct(v0v1);
 	float kEpsilon = 0.00001;
