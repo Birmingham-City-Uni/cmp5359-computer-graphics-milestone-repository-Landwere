@@ -1,6 +1,6 @@
 // Ray-Tracer.cpp : This file contains the 'main' function. Program execution begins and ends there.
 //
-
+#pragma once
 #include <iostream>
 #include <fstream>
 #include <cmath>
@@ -17,6 +17,7 @@
 #include "threadpool.h"
 #include "model.h"
 #include "triangle.h"
+#include "bvh.h"
 
 #define M_PI 3.14159265359
 
@@ -283,7 +284,7 @@ hittable_list test_scene()
     return world;
 }
 
-const int modelArraySize = 34;
+const int modelArraySize = 33;
 Model* modelArray[modelArraySize];
 hittable_list maya_scene()
 {
@@ -300,7 +301,8 @@ hittable_list maya_scene()
     int iteration = 0;
     for (const auto & entry : fs::directory_iterator(path))
     {
-        if (iteration == 31)
+
+        if (iteration == 30 || iteration == 29 || iteration == 28)
         {
             std::cout << entry.path() << std::endl;
             std::string s = entry.path().u8string();
@@ -339,6 +341,19 @@ hittable_list maya_scene()
             }
             modelArray[iteration]->setMat(mat_metal);
         }
+        else
+        {
+            std::cout << entry.path() << std::endl;
+            std::string s = entry.path().u8string();
+
+            modelArray[iteration] = new Model(s.c_str());
+            //Model* model = new Model(s.c_str());
+            if (modelArray[iteration] == NULL)
+            {
+                std::cout << "Model failed to load!" << std::endl;
+            }
+            modelArray[iteration]->setMat(purple_mat_diffuse);
+        }
         iteration++;
     }
 
@@ -376,7 +391,8 @@ hittable_list maya_scene()
 
     auto ground_material = make_shared<lambertian>(Colour(0.5, 0.5, 0.5));
     world.add(make_shared<sphere>(Point3f(0, -1000, 0), 1000, ground_material));
-    return world;
+   // return world;
+    return hittable_list(make_shared<bvh_node>(world));
 }
 
 void LineRender(SDL_Surface* screen, hittable_list world, int y, int spp, int max_depth, camera* cam)

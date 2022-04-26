@@ -27,6 +27,10 @@ inline double random_double(double min, double max)
 	//returns a random real in [min, max].
 	return min + (max - min) * random_double();
 }
+inline int random_int(int min, int max)
+{
+	return static_cast<int>(random_double(min, max + 1));
+}
 
 
 //common headers 

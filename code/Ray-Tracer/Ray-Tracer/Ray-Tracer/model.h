@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include "common.h"
+//#include "common.h"
 #include "material.h"
 
 class Model {

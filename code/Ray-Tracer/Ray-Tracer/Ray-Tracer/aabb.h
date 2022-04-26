@@ -26,8 +26,8 @@ public:
 	Point3f maximum;
 };
 
-aabb surrounding_box(aabb box0, aabb box1) {
+inline aabb surrounding_box(aabb box0, aabb box1) {
 	Point3f small(fmin(box0.min().x - 1e-3, box1.min().x - 1e-3), fmin(box0.min().y - 1e-3, box1.min().y - 1e-3), fmin(box0.min().z - 1e-3, box1.min().z - 1e-3));
 	Point3f big(fmax(box0.max().x - 1e-3, box1.max().x + 1e-3), fmax(box0.max().y + 1e-3, box1.max().y + 1e-3), fmax(box0.max().z + 1e-3, box1.max().z + 1e-3));
-	return
+	return aabb(small, big);
 }
