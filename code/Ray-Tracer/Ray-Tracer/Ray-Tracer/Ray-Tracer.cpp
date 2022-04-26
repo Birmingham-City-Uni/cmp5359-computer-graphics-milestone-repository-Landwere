@@ -313,6 +313,19 @@ hittable_list maya_scene()
             }
             modelArray[iteration]->setMat(glass);
         }
+        if (iteration == 0)
+        {
+            std::cout << entry.path() << std::endl;
+            std::string s = entry.path().u8string();
+
+            modelArray[iteration] = new Model(s.c_str());
+            //Model* model = new Model(s.c_str());
+            if (modelArray[iteration] == NULL)
+            {
+                std::cout << "Model failed to load!" << std::endl;
+            }
+            modelArray[iteration]->setMat(purple_mat_diffuse);
+        }
         if (iteration == 26)
         {
             std::cout << entry.path() << std::endl;
@@ -350,7 +363,11 @@ hittable_list maya_scene()
                 const Vec3f& v1 = modelArray[iteration]->vert(modelArray[iteration]->face(i)[1]);
                 const Vec3f& v2 = modelArray[iteration]->vert(modelArray[iteration]->face(i)[2]);
 
-                world.add(make_shared<triangle>(v0 + transform, v1 + transform, v2 + transform,modelArray[iteration]->vn(i) ,modelArray[iteration]->getMat()));
+                const Vec3f& vn0 = modelArray[iteration]->vn(modelArray[iteration]->vNorms(i)[0]);
+                const Vec3f& vn1 = modelArray[iteration]->vn(modelArray[iteration]->vNorms(i)[1]);
+                const Vec3f& vn2 = modelArray[iteration]->vn(modelArray[iteration]->vNorms(i)[2]);
+
+                world.add(make_shared<triangle>(v0 + transform, v1 + transform, v2 + transform,vn0, vn1, vn2 ,modelArray[iteration]->getMat()));
             }
         }
         else std::cout << "Empty model in array" << std::endl;

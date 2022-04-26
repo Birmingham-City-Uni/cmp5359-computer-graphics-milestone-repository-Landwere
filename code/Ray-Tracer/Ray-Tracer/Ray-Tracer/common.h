@@ -3,7 +3,7 @@
 #include <limits>
 #include <memory>
 #include <cstdlib>
-
+#include "Ray.h"
 //usings
 using std::shared_ptr;
 using std::make_shared;

@@ -454,8 +454,8 @@ int main(int argc, char **argv)
                                  // Thus the view direction can be computed as the point on the object
                                  // in camera space minus Vec3f(0), the position of the camera in camera space.
                                 
-                                 //Vec3f n = (v1Cam - v0Cam).crossProduct(v2Cam - v0Cam);
-                                 Vec3f n = modelArray[j]->vn(i)[0];
+                                 Vec3f n = (v1Cam - v0Cam).crossProduct(v2Cam - v0Cam);
+                                 //Vec3f n = modelArray[j]->vn(i)[0];
 
                                  n.normalize();
                                  Vec3f viewDirection = -pt;
