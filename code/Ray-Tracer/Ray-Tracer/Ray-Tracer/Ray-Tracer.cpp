@@ -18,6 +18,7 @@
 #include "model.h"
 #include "triangle.h"
 #include "bvh.h"
+#include "tgaimage.h"
 
 #define M_PI 3.14159265359
 
@@ -286,60 +287,66 @@ hittable_list test_scene()
 
 const int modelArraySize = 33;
 Model* modelArray[modelArraySize];
+void loadModelToArray( std::filesystem::directory_entry entry, int iteration, std::shared_ptr<material> mat)
+{
+    std::cout << entry.path() << std::endl;
+    std::string s = entry.path().u8string();
+
+    modelArray[iteration] = new Model(s.c_str());
+    //Model* model = new Model(s.c_str());
+    if (modelArray[iteration] == NULL)
+    {
+        std::cout << "Model failed to load!" << std::endl;
+    }
+    modelArray[iteration]->setMat(mat);
+}
 hittable_list maya_scene()
 {
     //materials
     auto purple_mat_diffuse = make_shared<lambertian>(Colour(0.140f, 0.122f, 0.230f));
-    auto brown_mat_diffuse = make_shared<lambertian>(Colour(0.150f, 0.75f, 0));
-    auto glass = make_shared<dielectric>(1.5);
+    auto brown_mat_diffuse = make_shared<lambertian>(Colour(0.150f, 0.075f, 0));
+    auto maroon_mat_diffuse = make_shared<lambertian>(Colour(0.125f, 0, 0));
+    auto orange_mat_diffuse = make_shared<lambertian>(Colour(0.255f, 0.215f, 0));
+
+    auto glass = make_shared<dielectric>(1.1f);
+    auto water = make_shared<dielectric>(0.9f);
+
     auto mat_metal = make_shared<metal>(Colour(0.7, 0.6, 0.5), 0.0);
 
     hittable_list world;
 
     std::string path = "\Models";
 
+
     int iteration = 0;
     for (const auto & entry : fs::directory_iterator(path))
     {
-
-        if (iteration == 30 || iteration == 29 || iteration == 28)
+        auto n = entry.path().filename();
+        if (n == "Jar2.obj")
         {
-            std::cout << entry.path() << std::endl;
-            std::string s = entry.path().u8string();
-
-            modelArray[iteration] = new Model(s.c_str());
-            //Model* model = new Model(s.c_str());
-            if (modelArray[iteration] == NULL)
-            {
-                std::cout << "Model failed to load!" << std::endl;
-            }
-            modelArray[iteration]->setMat(glass);
+            loadModelToArray(entry, iteration, glass);
         }
-        if (iteration == 0)
+        else if (n == "Jar_Liquid.obj")
         {
-            std::cout << entry.path() << std::endl;
-            std::string s = entry.path().u8string();
-
-            modelArray[iteration] = new Model(s.c_str());
-            //Model* model = new Model(s.c_str());
-            if (modelArray[iteration] == NULL)
-            {
-                std::cout << "Model failed to load!" << std::endl;
-            }
-            modelArray[iteration]->setMat(purple_mat_diffuse);
+            loadModelToArray(entry, iteration, water);
         }
-        if (iteration == 26)
+        else if (n == "BookShelf.obj")
         {
-            std::cout << entry.path() << std::endl;
-            std::string s = entry.path().u8string();
+            loadModelToArray(entry, iteration, brown_mat_diffuse);
 
-            modelArray[iteration] = new Model(s.c_str());
-            //Model* model = new Model(s.c_str());
-            if (modelArray[iteration] == NULL)
-            {
-                std::cout << "Model failed to load!" << std::endl;
-            }
-            modelArray[iteration]->setMat(mat_metal);
+        }
+        else  if (n == "Athena_Statue.obj" || n == "Ashtray.obj" || n == "Window_Blinds.obj")
+        {
+            loadModelToArray(entry, iteration, mat_metal);
+        }
+        else if (n == "Old_Book1.obj" || n == "Old_Book2.obj" || n == "Old_Book3.obj")
+        {
+            loadModelToArray(entry, iteration, maroon_mat_diffuse);
+
+        }
+        else if (n == "Fish_Body.obj" || n == "Fish_finAnalB__finAnalBShape.obj" || n == "Fish_finCaudalB__finCaudalBShape.obj")
+        {
+            loadModelToArray(entry, iteration, orange_mat_diffuse);
         }
         else
         {
@@ -454,7 +461,7 @@ int main(int argc, char **argv)
     const Vec3f red(255, 0, 0);
     const Vec3f green(0, 255, 0);
 
-    const int spp = 5;
+    const int spp = 25;
     //image 
     const float scale = 1.f / spp;
     auto R = cos(pi / 4);
@@ -466,7 +473,7 @@ int main(int argc, char **argv)
     Vec3f vup(0, 1, 0);
     auto dist_to_focus = 100;
     auto apeture = 0.05;
-    camera cam(lookfrom, lookat, vup,25 /*54.43*/, aspect_ratio, apeture, dist_to_focus);
+    camera cam(lookfrom, lookat, vup,35 /*54.43*/, aspect_ratio, apeture, dist_to_focus);
 
     //world
     auto world = maya_scene();
@@ -495,7 +502,7 @@ int main(int argc, char **argv)
 
     SDL_Event e;
     bool running = true;
-    while (running) {
+    /*while (running) {*/
 
         auto t_start = std::chrono::high_resolution_clock::now();
 
@@ -517,41 +524,53 @@ int main(int argc, char **argv)
         }
 
 
-    auto t_end = std::chrono::high_resolution_clock::now();
-    auto passedTime = std::chrono::duration<double, std::milli>(t_end - t_start).count();
-    std::cerr << "Frame render time:  " << passedTime << " ms" << std::endl;
+        auto t_end = std::chrono::high_resolution_clock::now();
+        auto passedTime = std::chrono::duration<double, std::milli>(t_end - t_start).count();
+        std::cerr << "Frame render time:  " << passedTime << " ms" << std::endl;
 
 
-    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, screen);
-    if (texture == NULL) {
-        fprintf(stderr, "CreateTextureFromSurface failed: %s\n", SDL_GetError());
-        exit(1);
-    }
-    SDL_FreeSurface(screen);
+        SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, screen);
+        if (texture == NULL) {
+            fprintf(stderr, "CreateTextureFromSurface failed: %s\n", SDL_GetError());
+            exit(1);
+        }
+        std::ofstream out("out.jpg");
+        out << "P3\n" << W << ' ' << H << ' ' << "255\n";
 
-    SDL_RenderCopyEx(renderer, texture, NULL, NULL, 0, 0, SDL_FLIP_VERTICAL);
-    SDL_RenderPresent(renderer);
+        TGAImage image(W, H, TGAImage::RGB);
+        image.flip_vertically(); // we want to have the origin at the left bottom corner of the image
+        image.write_tga_file("output.tga");
+
+        SDL_FreeSurface(screen);
+
+        SDL_RenderCopyEx(renderer, texture, NULL, NULL, 0, 0, SDL_FLIP_VERTICAL);
+        SDL_RenderPresent(renderer);
 
 
-    std::ofstream out("out.ppm");
-    out << "P3\n" << W << ' ' << H << ' ' << "255\n";
 
-    SDL_DestroyTexture(texture);
+        int flag;
+        std::cout << "Program is paused !\n" <<
+            "Press Enter to continue\n";
 
-    if (SDL_PollEvent(&e))
-    {
-        switch (e.type) {
-        case SDL_KEYDOWN:
-            switch (e.key.keysym.sym) {
-            case SDLK_ESCAPE:
-                running = false;
+        // pause the program until user input
+        flag = std::cin.get();
+
+        SDL_DestroyTexture(texture);
+
+        if (SDL_PollEvent(&e))
+        {
+            switch (e.type) {
+            case SDL_KEYDOWN:
+                switch (e.key.keysym.sym) {
+                case SDLK_ESCAPE:
+                    running = false;
+                    break;
+                }
                 break;
             }
-            break;
         }
-    }
-    }
 
+   // }
     std::cout << "Hello World!\n";
     return 0;
 }

@@ -34,7 +34,7 @@ private:
 	bool mRunning = false;
 
 	void Start(short threadCount) {
-		for (short i = 0; i < threadCount; i++)
+		for (short i = 0; i < threadCount - 1; i++)
 		{
 			mThreads.emplace_back([=] {
 				while (true)

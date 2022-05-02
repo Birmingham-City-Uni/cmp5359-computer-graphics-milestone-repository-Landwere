@@ -149,6 +149,7 @@
   <ItemGroup>
     <ClCompile Include="model.cpp" />
     <ClCompile Include="Ray-Tracer.cpp" />
+    <ClCompile Include="tgaimage.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="aabb.h" />
@@ -162,6 +163,7 @@
     <ClInclude Include="model.h" />
     <ClInclude Include="Ray.h" />
     <ClInclude Include="sphere.h" />
+    <ClInclude Include="tgaimage.h" />
     <ClInclude Include="threadpool.h" />
     <ClInclude Include="triangle.h" />
   </ItemGroup>
