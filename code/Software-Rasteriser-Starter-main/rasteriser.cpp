@@ -10,6 +10,7 @@
 #include "model.h"
 #include <fstream>
 #include <chrono>
+#include "tgaimage.h"
 
 #define M_PI 3.14159265359
 
@@ -145,8 +146,8 @@ float max3(const float &a, const float &b, const float &c)
 float edgeFunction(const Vec3f &a, const Vec3f &b, const Vec3f &c)
 { return (c[0] - a[0]) * (b[1] - a[1]) - (c[1] - a[1]) * (b[0] - a[0]); }
 
-const uint32_t imageWidth = 640;
-const uint32_t imageHeight = 480;
+const uint32_t imageWidth = 1920;
+const uint32_t imageHeight = 1080;
 Matrix44f worldToCamera;
 
 const float nearClippingPlane = 1;
@@ -166,8 +167,8 @@ void init() {
         "Software Rasteriser",
         SDL_WINDOWPOS_UNDEFINED,
         SDL_WINDOWPOS_UNDEFINED,
-        640,
-        480,
+        imageWidth,
+        imageHeight,
         0
     );
 
@@ -277,15 +278,27 @@ int main(int argc, char **argv)
         {
                 std::cout << entry.path() << std::endl;
                 std::string s = entry.path().u8string();
+                TGAColor colour2 = TGAColor(0, 0, 0, 255);
 
                 modelArray[iteration] = new Model(s.c_str());
+                modelArray[iteration]->setColour(colour2);
+
                 //Model* model = new Model(s.c_str());
                 if (modelArray[iteration] == NULL)
                 {
                     std::cout << "Model failed to load!" << std::endl;
                 }
+
+                auto n = entry.path().filename();
+                if (n == "Jar2.obj")
+                {
+                    TGAColor colour = TGAColor(140, 122, 230, 255);
+                    modelArray[iteration]->setColour(colour);
+                }
+
                 iteration++;
-            }
+
+        }
        // model = new Model("cc_t.obj");
     }
 
@@ -308,6 +321,7 @@ int main(int argc, char **argv)
     float *depthBuffer = new float[imageWidth * imageHeight];
     for (uint32_t i = 0; i < imageWidth * imageHeight; ++i) depthBuffer[i] = farClippingPlane;
 
+    TGAImage outputImage(1920, 1080, TGAImage::RGB);
 
     SDL_Event e;
     bool running = true;
@@ -474,9 +488,22 @@ int main(int argc, char **argv)
                                  float c = 0.3 * (1 - checker) + 0.7 * checker;
                                  nDotView *= c;
 
+                                 TGAColor modelCol = modelArray[j]->getColour();
+                                 //TGAColor blankColour = TGAColor(0, 0, 0, 255);
                                  // Set the pixel value on the SDL_Surface that gets drawn to the SDL_Window
-                                 Uint32 colour = SDL_MapRGB(screen->format, nDotView * 255, nDotView * 255, nDotView * 255);
-                                 putpixel(screen, x, y, colour);
+                                 if (modelCol.r == 0)
+                                 {
+                                     Uint32 colour = SDL_MapRGB(screen->format, nDotView * 255, nDotView * 255, nDotView * 255);
+                                     putpixel(screen, x, y, colour);
+                                     outputImage.set(x, y, TGAColor(nDotView * 255, nDotView * 255, nDotView * 255, 255));
+
+                                 }
+                                 else
+                                 {
+                                     //putpixel(screen, x, y, modelArray[j]->getColour());
+                                     outputImage.set(x, y, modelArray[j]->getColour());
+                                 }
+
                              }
                          }
                      }
@@ -484,6 +511,10 @@ int main(int argc, char **argv)
          }
         
         }
+
+
+       // outputImage.flip_vertically();
+        outputImage.write_tga_file("output.tga");
 
         // Calculate frame interval timing
         auto t_end = std::chrono::high_resolution_clock::now();

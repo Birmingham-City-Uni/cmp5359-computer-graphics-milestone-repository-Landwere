@@ -2,6 +2,8 @@
 
 #include <vector>
 #include "geometry.h"
+#include "SDL.h" 
+#include "tgaimage.h"
 
 class Model {
 private:
@@ -9,8 +11,19 @@ private:
 	std::vector<std::vector<int> > faces_;  // Stores a vector of vector<int> that represent indices in verts_ for vertices comprising a face
 	std::vector<Vec2f> vts_;				// Stores Vec3f for every model vertex texture coordinate
 	std::vector<Vec3f> vns_;
+	TGAColor colour;
 
+	
 public:
+	void setColour(TGAColor col)
+	{
+		colour = col;
+	}
+	TGAColor getColour()
+	{
+		return colour;
+	}
+
 	Model(const char *filename);
 	~Model();
 	int nverts();

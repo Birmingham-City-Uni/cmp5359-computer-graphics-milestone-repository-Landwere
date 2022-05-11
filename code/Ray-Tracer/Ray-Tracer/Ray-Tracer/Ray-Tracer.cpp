@@ -402,7 +402,7 @@ hittable_list maya_scene()
     return hittable_list(make_shared<bvh_node>(world));
 }
 
-void LineRender(SDL_Surface* screen, hittable_list world, int y, int spp, int max_depth, camera* cam)
+void LineRender(SDL_Surface* screen, hittable_list world, int y, int spp, int max_depth, camera* cam, TGAImage* image)
 {
     const auto aspect_ratio = 16.0 / 9.0;
     const int image_width = screen->w;
@@ -427,6 +427,7 @@ void LineRender(SDL_Surface* screen, hittable_list world, int y, int spp, int ma
         pix_col *= 255;
         Uint32 colour = SDL_MapRGB(screen->format, pix_col.x, pix_col.y, pix_col.z);
         putPixel(screen, x, y, colour);
+        image->set(x, y, TGAColor(pix_col.x, pix_col.y, pix_col.z));
     }
 }
 
@@ -434,6 +435,9 @@ void LineRender(SDL_Surface* screen, hittable_list world, int y, int spp, int ma
 
 int main(int argc, char **argv)
 {
+    TGAImage image(W, H, TGAImage::RGB);
+
+
     if (__cplusplus == 201703L)
         std::cout << "C++17" << std::endl;
     else if (__cplusplus == 201402L)
@@ -519,7 +523,7 @@ int main(int argc, char **argv)
             int step = screen->h / std::thread::hardware_concurrency();
             for (int y = 0; y < screen->h - 1; y++)
             {
-                pool.Enqueue(std::bind(LineRender, screen, world, y, spp, max_depth, &cam));
+                pool.Enqueue(std::bind(LineRender, screen, world, y, spp, max_depth, &cam, &image));
             }
         }
 
@@ -537,7 +541,6 @@ int main(int argc, char **argv)
         std::ofstream out("out.jpg");
         out << "P3\n" << W << ' ' << H << ' ' << "255\n";
 
-        TGAImage image(W, H, TGAImage::RGB);
         image.flip_vertically(); // we want to have the origin at the left bottom corner of the image
         image.write_tga_file("output.tga");
 
