@@ -23,6 +23,18 @@ public:
 	{
 		return colour;
 	}
+	int getColourR()
+	{
+		return colour.r;
+	}
+	int getColourG()
+	{
+		return colour.g;
+	}
+	int getColourB()
+	{
+		return colour.b;
+	}
 
 	Model(const char *filename);
 	~Model();

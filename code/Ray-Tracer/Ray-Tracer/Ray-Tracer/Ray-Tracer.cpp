@@ -46,30 +46,51 @@ double hit_sphere(const Point3f& center, double radius, const Ray& r)
     }
 }
 
-Colour ray_colour(const Ray& r, const hittable& world, int depth)
+Colour ray_colour(const Ray& r, const Colour& background, const hittable& world,  int depth)
 {
     hit_record rec;
     //if we exceeded the ray bounce limit, no more light is gathered.
     if (depth <= 0) return Colour(0, 0, 0);
-    if (world.hit(r, 0.001, infinity, rec)) //bounded t from 0 --> inf
-    {
+    if (!world.hit(r, 0.001, infinity, rec)) return background; //bounded t from 0 --> inf
+    
         Ray scattered;
         Colour attenuation;
-        if (rec.mat_ptr->scatter(r, rec, attenuation, scattered))
-            return attenuation * ray_colour(scattered, world, depth - 1);
-        return Colour(0, 0, 0);
-        
-       // Point3f target = rec.p + rec.normal + Vec3f().random_in_unlit_sphere();
-       // //next line for normal visualization debugging only
-       //// return (rec.normal + Colour(1, 1, 1)) * 255 * 0.5;
-       // return 0.5 * ray_colour(Ray(rec.p, target - rec.p), world, depth-1);
-    }
-    Vec3f unit_direction = r.direction().normalize();
-    auto t = 0.5 * (unit_direction.y + 1.0);
-    return (1.0 - t) * Colour(1.0, 1.0, 1.0) + t * Colour(0.5, 0.7, 1.0) * 255;
-   
+        Colour emitted = rec.mat_ptr->emitted(depth);
+        if (!rec.mat_ptr->scatter(r, rec, attenuation, scattered)) { return emitted; }
+           
+
+        // Point3f target = rec.p + rec.normal + Vec3f().random_in_unlit_sphere();
+        // //next line for normal visualization debugging only
+        //// return (rec.normal + Colour(1, 1, 1)) * 255 * 0.5;
+        // return 0.5 * ray_colour(Ray(rec.p, target - rec.p), world, depth-1);
+        if (depth < 2) { return rec.mat_ptr->scatter(r, rec, attenuation, scattered); }
+    return emitted + attenuation * ray_colour(scattered, background, world, depth - 1);
+
 }
 
+Colour Oldray_colour(const Ray& r, const hittable& world, int depth)
+{
+    //hit_record rec;
+    ////if we exceeded the ray bounce limit, no more light is gathered.
+    //if (depth <= 0) return Colour(0, 0, 0);
+    //if (world.hit(r, 0.001, infinity, rec)) //bounded t from 0 --> inf
+    //{
+    //    Ray scattered;
+    //    Colour attenuation;
+    //    if (rec.mat_ptr->scatter(r, rec, attenuation, scattered))
+    //        return attenuation * ray_colour(scattered, world, depth - 1);
+    //    return Colour(0, 0, 0);
+
+    //    // Point3f target = rec.p + rec.normal + Vec3f().random_in_unlit_sphere();
+    //    // //next line for normal visualization debugging only
+    //    //// return (rec.normal + Colour(1, 1, 1)) * 255 * 0.5;
+    //    // return 0.5 * ray_colour(Ray(rec.p, target - rec.p), world, depth-1);
+    //}
+    //Vec3f unit_direction = r.direction().normalize();
+    //auto t = 0.5 * (unit_direction.y + 1.0);
+    //return (1.0 - t) * Colour(1.0, 1.0, 1.0) + t * Colour(0.5, 0.7, 1.0) * 255;
+
+}
 //struct Vec3f 
 //{
 //    double x, y, z;
@@ -186,7 +207,7 @@ void init()
 {
     SDL_Init(SDL_INIT_VIDEO);
 
-    SDL_Window* window = SDL_CreateWindow("Cory's Software Ray Tracer", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 360, 0);
+    SDL_Window* window = SDL_CreateWindow("Cory's Software Ray Tracer", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1920, 1080, 0);
 
     screen = SDL_GetWindowSurface(window);
 
@@ -196,6 +217,7 @@ void init()
 hittable_list random_scene() {
     hittable_list world;
     auto ground_material = make_shared<lambertian>(Colour(0.5, 0.5, 0.5));
+
     world.add(make_shared<sphere>(Point3f(0, -1000, 0), 1000, ground_material));
 
     for (int a = -11; a < 11; a++)
@@ -207,20 +229,27 @@ hittable_list random_scene() {
             if ((centre - Point3f(4, 0.2, 0)).length() > 0.9)
             {
                 shared_ptr<material> sphere_material;
-                if (choose_mat < 0.8)
+                if (choose_mat < 0.7)
                 {
                     //diffuse
                     auto albedo = Colour::random() * Colour::random();
                     sphere_material = make_shared<lambertian>(albedo);
                     world.add(make_shared<sphere>(centre, 0.2, sphere_material));
                 }
-                else if (choose_mat < 0.95)
+                else if (choose_mat < 0.85)
                 {
                     //metal
                     auto albedo = Colour::random(0.5, 1);
                     auto fuzz = random_double(0, 0.5);
                     sphere_material = make_shared<metal>(albedo, fuzz);
                     world.add(make_shared<sphere>(centre, 0.2, sphere_material));
+                }
+                else if (choose_mat < 0.95)
+                {
+                    //metal
+                    auto albedo = Colour::random(50, 255);
+                    sphere_material = make_shared<diffuse_light>(albedo);
+                    world.add(make_shared<sphere>(centre, 0.4, sphere_material));
                 }
                 else
                 {
@@ -237,6 +266,8 @@ hittable_list random_scene() {
     world.add(make_shared<sphere>(Point3f(-4, 1, 0), 1.0, mat2));
     auto mat3 = make_shared<metal>(Colour(0.7, 0.6, 0.5), 0.0);
     world.add(make_shared<sphere>(Point3f(4, 1, 0), 1.0, mat3));
+    //auto mat4 = make_shared<diffuse_light>(Colour(1,1,1));
+    //world.add(make_shared<sphere>(Point3f(4, 10, 0), 1.0, mat4));
     return world;
 }
 
@@ -244,12 +275,12 @@ hittable_list test_scene()
 {
     hittable_list world;
 
-    Model* model = new Model("__Box001__Box001Shape.obj");
+    Model* model = new Model("back_vase.obj");
     if (model == NULL)
     {
         std::cout << "Model failed to load!" << std::endl;
     }
-    Vec3f transform(0, 0.8, 0);
+    Vec3f transform(0, 0, 0);
     auto glass = make_shared<dielectric>(1.5);
 
    /* for (uint32_t i = 0; i < model->nfaces(); ++i)
@@ -306,12 +337,15 @@ hittable_list maya_scene()
     auto purple_mat_diffuse = make_shared<lambertian>(Colour(0.140f, 0.122f, 0.230f));
     auto brown_mat_diffuse = make_shared<lambertian>(Colour(0.150f, 0.075f, 0));
     auto maroon_mat_diffuse = make_shared<lambertian>(Colour(0.125f, 0, 0));
+    auto brownBook_mat_diffuse = make_shared<lambertian>(Colour(0.60f, 0.46f, 0.39f));
+
     auto orange_mat_diffuse = make_shared<lambertian>(Colour(0.255f, 0.215f, 0));
 
     auto glass = make_shared<dielectric>(1.1f);
     auto water = make_shared<dielectric>(0.9f);
 
     auto mat_metal = make_shared<metal>(Colour(0.7, 0.6, 0.5), 0.0);
+    auto ceramic_metal = make_shared<metal>(Colour(0.232f, 0.158f, 0.93f), 0.8);
 
     hittable_list world;
 
@@ -322,7 +356,11 @@ hittable_list maya_scene()
     for (const auto & entry : fs::directory_iterator(path))
     {
         auto n = entry.path().filename();
-        if (n == "Jar2.obj")
+        if (n == "oldbook15.obj" || n == "Book6.obj" || n == "Book4.obj" || n == "Book3.obj" || n == "Book2.obj" || n == "Book1.obj")
+        {
+            loadModelToArray(entry, iteration, brownBook_mat_diffuse);
+        }
+        else if (n == "Jar2.obj")
         {
             loadModelToArray(entry, iteration, glass);
         }
@@ -335,32 +373,40 @@ hittable_list maya_scene()
             loadModelToArray(entry, iteration, brown_mat_diffuse);
 
         }
-        else  if (n == "Athena_Statue.obj" || n == "Ashtray.obj" || n == "Window_Blinds.obj")
-        {
-            loadModelToArray(entry, iteration, mat_metal);
-        }
-        else if (n == "Old_Book1.obj" || n == "Old_Book2.obj" || n == "Old_Book3.obj")
-        {
-            loadModelToArray(entry, iteration, maroon_mat_diffuse);
+        //else  if (n == "Athena_Statue.obj" || n == "Ashtray.obj" || n == "Window_Blinds.obj")
+        //{
+        //    loadModelToArray(entry, iteration, mat_metal);
+        //}
+        //else if (n == "Old_Book1.obj" || n == "Old_Book2.obj" || n == "Old_Book3.obj")
+        //{
+        //    loadModelToArray(entry, iteration, maroon_mat_diffuse);
 
-        }
-        else if (n == "Fish_Body.obj" || n == "Fish_finAnalB__finAnalBShape.obj" || n == "Fish_finCaudalB__finCaudalBShape.obj")
-        {
-            loadModelToArray(entry, iteration, orange_mat_diffuse);
-        }
-        else
-        {
-            std::cout << entry.path() << std::endl;
-            std::string s = entry.path().u8string();
+        //}
+        //else if (n == "Fish_Body.obj" || n == "Fish_finAnalB__finAnalBShape.obj" || n == "Fish_finCaudalB__finCaudalBShape.obj")
+        //{
+        //    loadModelToArray(entry, iteration, orange_mat_diffuse);
+        //}
+        //else if (n == "Ceramic_Frog.obj" )
+        //{
+        //    loadModelToArray(entry, iteration, ceramic_metal);
+        //}
+        //else if (n == "cigarette.obj")
+        //{
+        //    loadModelToArray(entry, iteration, brown_mat_diffuse);
+        //}
+        //else
+        //{
+        //    std::cout << entry.path() << std::endl;
+        //    std::string s = entry.path().u8string();
 
-            modelArray[iteration] = new Model(s.c_str());
-            //Model* model = new Model(s.c_str());
-            if (modelArray[iteration] == NULL)
-            {
-                std::cout << "Model failed to load!" << std::endl;
-            }
-            modelArray[iteration]->setMat(purple_mat_diffuse);
-        }
+        //    modelArray[iteration] = new Model(s.c_str());
+        //    //Model* model = new Model(s.c_str());
+        //    if (modelArray[iteration] == NULL)
+        //    {
+        //        std::cout << "Model failed to load!" << std::endl;
+        //    }
+        //    modelArray[iteration]->setMat(purple_mat_diffuse);
+        //}
         iteration++;
     }
 
@@ -371,7 +417,9 @@ hittable_list maya_scene()
     modelArray[29]->setMat(glass);
     modelArray[30]->setMat(glass);
     modelArray[31]->setMat(glass);*/
-
+    auto mat4 = make_shared<diffuse_light>(Colour(1,1,1));
+    world.add(make_shared<sphere>(Point3f(-5.678873, 84.315444, 80.007110), 10.0, mat4));
+   
     //add to world
     Vec3f transform = Vec3f(0, 0, 0);
     iteration = 0;
@@ -408,6 +456,7 @@ void LineRender(SDL_Surface* screen, hittable_list world, int y, int spp, int ma
     const int image_width = screen->w;
     const int image_height = static_cast<int>(image_width / aspect_ratio);
     const Colour black(0, 0, 0);
+    Colour background(0, 0, 0);
     Vec3f pix_col(black);
     for (int x = 0; x < screen->w; ++x)
     {
@@ -417,7 +466,12 @@ void LineRender(SDL_Surface* screen, hittable_list world, int y, int spp, int ma
             auto u = double(x + random_double()) / (image_width - 1);
             auto v = double(y + random_double()) / (image_height - 1);
             Ray ray = cam->get_ray(u, v);
-            pix_col = pix_col + ray_colour(ray, world, max_depth);
+            Vec3f unit_direction = ray.direction().normalize();
+            //std::cout << unit_direction << std::endl;
+            Vec3f directionalLight = Vec3f(-1, -1, 0);
+            auto t = 0.05 * (unit_direction.y + 1.0);
+            background = (1.0 - t) * Colour(1.0, 1.0, 1.0) + t * Colour(0.5, 0.7, 1.0) * /*ambient strength*/ 0.1;
+            pix_col = pix_col + ray_colour(ray, background, world, max_depth);
         }
         //scale cumalativew colour values accordingly to spp and gamme-correct for gamma = 2.0
         pix_col /= 255.f * spp;
@@ -427,7 +481,7 @@ void LineRender(SDL_Surface* screen, hittable_list world, int y, int spp, int ma
         pix_col *= 255;
         Uint32 colour = SDL_MapRGB(screen->format, pix_col.x, pix_col.y, pix_col.z);
         putPixel(screen, x, y, colour);
-        image->set(x, y, TGAColor(pix_col.x, pix_col.y, pix_col.z));
+        image->set(x, y, TGAColor(pix_col.x, pix_col.y, pix_col.z, 255));
     }
 }
 
@@ -435,7 +489,6 @@ void LineRender(SDL_Surface* screen, hittable_list world, int y, int spp, int ma
 
 int main(int argc, char **argv)
 {
-    TGAImage image(W, H, TGAImage::RGB);
 
 
     if (__cplusplus == 201703L)
@@ -457,32 +510,35 @@ int main(int argc, char **argv)
     const int image_height = static_cast<int>(image_width / aspect_ratio);
     const int max_depth = 50;
 
-    const int H = 640;
-    const int W = 480;
+    const int H = 1080;
+    const int W = 1920;
+
+    TGAImage image(W, H, TGAImage::RGB);
 
     const Vec3f white(255, 255, 255);
     const Vec3f black(0, 0, 0);
     const Vec3f red(255, 0, 0);
     const Vec3f green(0, 255, 0);
 
-    const int spp = 25;
+    const int spp = 5;
     //image 
     const float scale = 1.f / spp;
     auto R = cos(pi / 4);
     //camera
     Point3f lookfrom(-17.678873, 84.315444, 74.007110);
     Point3f lookat(-2.243758, 84.315444, 39.339274);
-   // Point3f lookfrom(2, 13, 0);
-   // Point3f lookat(0, 0, 0);
+
+    //Point3f lookfrom(13, 2, 3);
+    //Point3f lookat(0, 0, 0);
     Vec3f vup(0, 1, 0);
-    auto dist_to_focus = 100;
+    auto dist_to_focus = 35;
     auto apeture = 0.05;
     camera cam(lookfrom, lookat, vup,35 /*54.43*/, aspect_ratio, apeture, dist_to_focus);
 
     //world
     auto world = maya_scene();
     //const Sphere sphere(Vec3f(W * 0.5f, H * 0.5f, 50), 100);
-    //const Sphere light(Vec3f(1000, 0, -50), 1);
+   // const Sphere light(Vec3f(1000, 0, -50), 1);
    /* hittable_list world;
     auto material_ground = make_shared <lambertian>(Colour(0.8, 0.8, 0.0));
     auto material_center = make_shared <lambertian>(Colour(0.1, 0.2, 0.5));

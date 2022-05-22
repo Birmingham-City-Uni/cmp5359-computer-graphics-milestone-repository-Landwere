@@ -11,15 +11,19 @@
 #include <fstream>
 #include <chrono>
 #include "tgaimage.h"
-
+#include "stb_image.h"
+#include "SDL2/SDL_image.h"
 #define M_PI 3.14159265359
 
 static const float inchToMm = 25.4;
 enum FitResolutionGate { kFill = 0, kOverscan };
 
-float camX = -17.678873;
-float camY = 84.315444;
-float camZ = 74.007110;
+//float camX = -17.678873;
+//float camY = 84.315444;
+//float camZ = 74.007110;
+float camX = 0;
+float camY = 1;
+float camZ = -10;
 float camAngleX = 0.0f;
 float camAngleY = 1.0f;
 
@@ -263,7 +267,7 @@ Model* model = nullptr;
 
 int main(int argc, char **argv)
 {
-    const int modelArraySize = 32;
+    const int modelArraySize = 1;
     Model* modelArray[modelArraySize];
     namespace fs = std::filesystem;
     // load model
@@ -271,34 +275,40 @@ int main(int argc, char **argv)
         model = new Model(argv[1]);
     }
     else {
-        std::string path = "\Models";
 
-        int iteration = 0;
-        for (const auto& entry : fs::directory_iterator(path))
-        {
-                std::cout << entry.path() << std::endl;
-                std::string s = entry.path().u8string();
-                TGAColor colour2 = TGAColor(0, 0, 0, 255);
+        modelArray[0] = new Model("cc_t.obj");
+        //std::string path = "\Models";
 
-                modelArray[iteration] = new Model(s.c_str());
-                modelArray[iteration]->setColour(colour2);
+        //int iteration = 0;
+        //for (const auto& entry : fs::directory_iterator(path))
+        //{
+        //        std::cout << entry.path() << std::endl;
+        //        std::string s = entry.path().u8string();
+        //        TGAColor colour2 = TGAColor(0, 0, 0, 255);
 
-                //Model* model = new Model(s.c_str());
-                if (modelArray[iteration] == NULL)
-                {
-                    std::cout << "Model failed to load!" << std::endl;
-                }
+        //        modelArray[iteration] = new Model(s.c_str());
+        //        modelArray[iteration]->setColour(colour2);
 
-                auto n = entry.path().filename();
-                if (n == "Jar2.obj")
-                {
-                    TGAColor colour = TGAColor(140, 122, 230, 255);
-                    modelArray[iteration]->setColour(colour);
-                }
+        //        //Model* model = new Model(s.c_str());
+        //        if (modelArray[iteration] == NULL)
+        //        {
+        //            std::cout << "Model failed to load!" << std::endl;
+        //        }
 
-                iteration++;
+        //        auto n = entry.path().filename();
+        //        if (n == "Jar2.obj")
+        //        {
+        //            TGAColor colour = TGAColor(140, 122, 230, 255);
+        //            modelArray[iteration]->setColour(colour);
+        //        }
+        //        if (n == "Athena_Statue.obj")
+        //        {
+        //            TGAColor colour = TGAColor(140, 122, 230, 255);
+        //            modelArray[iteration]->setColour(colour);
+        //        }
+        //        iteration++;
 
-        }
+        //}
        // model = new Model("cc_t.obj");
     }
 
@@ -352,7 +362,7 @@ int main(int argc, char **argv)
         // For eye, target and up Vec3's you should be able to return a cameraToWorld matrix to invert for a worldToCamera matrix:
 
          Vec3f eye(camX, camY, camZ);
-         Vec3f target(-2.243758, 84.315444, 39.339274);
+         Vec3f target(/*-2.243758, 84.315444, 39.339274*/ 0,0,0);
          Vec3f up(0.f, 1.f, 0.f);
          worldToCamera = lookAt(eye, target, up).inverse();
         // now implement the lookAt() method!
@@ -361,19 +371,21 @@ int main(int argc, char **argv)
         // Implement the Arcball Camera to replace Vec3f eye(0.f, 1.f, 3.f); with Vec3f eye(camX, camY, camZ); computed each frame
         // for increments of camAngleX, starting at 0.0f and resetting after incrementing past 360 degrees. 
          float distance = 4.0f;
-        /* camX = distance * -sin(camAngleX * (M_PI / 180)) * cos((camAngleY) * (M_PI / 180));
+         camX = distance * -sin(camAngleX * (M_PI / 180)) * cos((camAngleY) * (M_PI / 180));
          camY = distance * -sin((camAngleY) * (M_PI / 180));
-         camZ = distance * -cos(camAngleX * (M_PI / 180)) * cos((camAngleY) * (M_PI / 180));*/
+         camZ = distance * -cos(camAngleX * (M_PI / 180)) * cos((camAngleY) * (M_PI / 180));
         
          if (camAngleX < 360.0f)
          {
-             //camAngleX += 1.0f;
+             camAngleX += 1.0f;
          }
          else
          {
              camAngleX = 0.0f;
          }
-         
+         int width, height, channels;
+         unsigned char* image = stbi_load("chibiCarlo.tga", &width, &height, &channels, STBI_rgb_alpha);
+
         // Outer loop - For every face in the model (would eventually need to be amended to be for every face in every model)
          for (int j = 0; j < modelArraySize; j++)
          {
@@ -444,9 +456,9 @@ int main(int argc, char **argv)
 
                                  // Calculate the texture coordinate based on barycentric position of the pixel
                                  Vec2f st = st0 * w0 + st1 * w1 + st2 * w2;
-
                                  // correct for perspective distortion
                                  st *= z;
+                                 
 
                                  // If you need to compute the actual position of the shaded
                                  // point in camera space. Proceed like with the other vertex attribute.
@@ -477,6 +489,7 @@ int main(int argc, char **argv)
 
                                  // Calculate shading of the surface based on dot product of the normal and view direction
                                  float nDotView = std::max(0.f, n.dotProduct(viewDirection));
+                                 float nDotView2 = std::max(0.f, n.dotProduct(viewDirection));
 
                                  // The final colour is the result of the fraction multiplied by the
                                  // checkerboard pattern defined in checker.
@@ -487,30 +500,56 @@ int main(int argc, char **argv)
                                  float checker = (fmod(st.x * M, 1.0) > 0.5) ^ (fmod(st.y * M, 1.0) < 0.5);
                                  float c = 0.3 * (1 - checker) + 0.7 * checker;
                                  nDotView *= c;
+                                
+                                // SDL_Surface* imageSurface = IMG_Load("chibiCarlo.tga");
+                                 char temp = 5;
+                                 int r, g, b, a;
+                                 int xx = ((float)st.x * width);
+                                 int yy = ((float)st.y * height);
 
+                                 //std::cout << xx << yy << std::endl;
+                                 if (xx < 0 || yy < 0)
+                                 {
+                                     //std::cout << "ERROR " << std::endl;
+                                 }
+                                 else
+                                 { 
+                                 //STB getpixel function from reddit: https://www.reddit.com/r/opengl/comments/8gyyb6/does_stb_image_have_some_sort_of_getpixel/
+                                 r = image[4 * (yy * width + xx) + 0];
+                                 g = image[4 * (yy * width + xx) + 1];
+                                 b = image[4 * (yy * width + xx) + 2];
+                                 a = image[4 * (yy * width + xx) + 3];
+                                 //end of getpixel refference
+                                 }
+                                 //std::cout << r << g << b << std::endl;
+                                  Uint32 colour = SDL_MapRGBA(screen->format, r,g,b, a);
+                                  putpixel(screen, x, y, colour);
+                                  // SDL_FreeSurface(imageSurface);
+                                   outputImage.set(x, y, TGAColor(r, g, b, 255));
                                  TGAColor modelCol = modelArray[j]->getColour();
                                  //TGAColor blankColour = TGAColor(0, 0, 0, 255);
                                  // Set the pixel value on the SDL_Surface that gets drawn to the SDL_Window
-                                 if (modelCol.r == 0)
-                                 {
-                                     Uint32 colour = SDL_MapRGB(screen->format, nDotView * 255, nDotView * 255, nDotView * 255);
-                                     putpixel(screen, x, y, colour);
-                                     outputImage.set(x, y, TGAColor(nDotView * 255, nDotView * 255, nDotView * 255, 255));
+                                 //if (modelCol.r == 0)
+                                 //{
+                                 //    Uint32 colour = SDL_MapRGB(screen->format, nDotView * 255, nDotView * 255, nDotView * 255);
+                                 //    putpixel(screen, x, y, colour);
+                                 //    outputImage.set(x, y, TGAColor(nDotView * 255, nDotView * 255, nDotView * 255, 255));
 
-                                 }
-                                 else
-                                 {
-                                     //putpixel(screen, x, y, modelArray[j]->getColour());
-                                     outputImage.set(x, y, modelArray[j]->getColour());
-                                 }
+                                 //}
+                                 //else
+                                 //{
+                                 //    //putpixel(screen, x, y, modelArray[j]->getColour());
+                                 //    outputImage.set(x, y, TGAColor(modelArray[j]->getColourR() * nDotView2, modelArray[j]->getColourG() * nDotView2, modelArray[j]->getColourB() * nDotView2, 255 ));
+                                 //}
 
                              }
                          }
                      }
                  }
-         }
+             }
         
         }
+        stbi_image_free(image);
 
 
        // outputImage.flip_vertically();

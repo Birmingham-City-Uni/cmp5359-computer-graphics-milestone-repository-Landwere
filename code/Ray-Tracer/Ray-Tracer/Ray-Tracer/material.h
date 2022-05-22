@@ -7,7 +7,7 @@ struct hit_record;
 class material {
 public:
 	virtual bool scatter(const Ray& r_in, const hit_record& rec, Colour& attenuation, Ray& scattered) const = 0;
-
+	virtual Colour emitted(int depth) const { return Colour(0, 0, 0); }
 public:
 	static Vec3f reflect(const Vec3f& v, const Vec3f& n)
 	{
@@ -111,4 +111,24 @@ private:
 		r0 = r0 * r0;
 		return r0 + (1 - r0) * pow((1 - cosine), 5);
 	}
+};
+
+class diffuse_light : public material {
+public:
+	diffuse_light() {}
+	diffuse_light(Colour c) : emit(make_shared<Colour>(c)) {}
+	virtual bool scatter(const Ray& r_in, const hit_record& rec, Colour& attenuation, Ray& scattered) const override {
+		/*Vec3f unit_direction = r_in.direction().normalize();
+		Vec3f direction;
+
+		direction = reflect(unit_direction, rec.normal);
+
+		scattered = Ray(rec.p, direction);
+		return true;*/
+		return false; }
+	//virtual Colour emitted(int depth) const override { if (depth < 49) { return *emit; } return Colour(0, 0, 0); }
+	virtual Colour emitted(int depth) const override {return *emit;}
+
+public:
+	shared_ptr<Colour> emit;
 };
