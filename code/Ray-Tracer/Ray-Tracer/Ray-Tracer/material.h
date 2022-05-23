@@ -46,6 +46,7 @@ public:
 
 public:
 	Colour albedo;
+	//Colour<texture> albedo
 };
 
 

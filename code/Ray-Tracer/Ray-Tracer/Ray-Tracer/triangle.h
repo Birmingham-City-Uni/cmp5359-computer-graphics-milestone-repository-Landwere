@@ -18,7 +18,9 @@ public:
 	Point3f v0, v1, v2;
 	Vec3f normalX, normalY, normalZ;
 	shared_ptr<material> mat_ptr;
-	Vec2f UV;
+	//Vec2f UV;
+	Vec2f UVx, UVy, UVz;
+
 };
 
 //ray-triangle intersection:
@@ -59,6 +61,7 @@ bool triangle::hit(const Ray& r, double t_min, double t_max, hit_record& rec) co
 
 	//TODO: fix normal calculation
 	rec.normal = normalY * u + normalZ * v + normalX * (1.0f -u -v); //normal; thanks to sam <3
+	// Vec2f UV = UVx * (1.0f -u -v) + UVy * u + UVz * v;
 	//rec.u = UV.x;
 	//rec.v = UV.y;
 

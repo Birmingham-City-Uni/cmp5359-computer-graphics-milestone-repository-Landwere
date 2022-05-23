@@ -24442,7 +24442,8 @@ vn 0.379336 -0.295855 -0.876684
 vn 0.069840 -0.432719 -0.898820
 vn 0.061099 -0.440498 -0.895672
 s 1
-g polySurface2 Mesh
+g pasted__polySurface2 pasted__Mesh group18
+usemtl pasted__PBRTMetalMaterial3SG
 f 2284/2/1 2286/3/2 1/1/3
 f 1/1/3 2286/3/2 2285/4/4
 s 2

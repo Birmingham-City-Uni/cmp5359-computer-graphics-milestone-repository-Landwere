@@ -156,6 +156,7 @@
     <ClInclude Include="geometry.h" />
     <ClInclude Include="model.h" />
     <ClInclude Include="stb_image.h" />
+    <ClInclude Include="Texture.h" />
     <ClInclude Include="tgaimage.h" />
   </ItemGroup>
   <ItemGroup>

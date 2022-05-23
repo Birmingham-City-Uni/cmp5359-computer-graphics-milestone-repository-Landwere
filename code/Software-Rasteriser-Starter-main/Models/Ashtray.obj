@@ -1,5 +1,6 @@
 # This file uses centimeters as units for non-parametric coordinates.
 
+mtllib Ashtray.mtl
 g default
 v -5.202466 92.823361 18.968722
 v -4.817407 92.823361 17.989516
@@ -25199,6 +25200,7 @@ vn 0.069840 -0.432719 -0.898820
 vn 0.061099 -0.440498 -0.895672
 s 1
 g Mesh
+usemtl phong4SG
 f 2284/2/1 2286/3/2 1/1/3
 f 1/1/3 2286/3/2 2285/4/4
 s 2

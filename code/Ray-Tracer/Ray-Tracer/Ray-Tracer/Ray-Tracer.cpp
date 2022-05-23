@@ -63,7 +63,7 @@ Colour ray_colour(const Ray& r, const Colour& background, const hittable& world,
         // //next line for normal visualization debugging only
         //// return (rec.normal + Colour(1, 1, 1)) * 255 * 0.5;
         // return 0.5 * ray_colour(Ray(rec.p, target - rec.p), world, depth-1);
-        if (depth < 2) { return rec.mat_ptr->scatter(r, rec, attenuation, scattered); }
+        //if (depth < 2) { return rec.mat_ptr->scatter(r, rec, attenuation, scattered); }
     return emitted + attenuation * ray_colour(scattered, background, world, depth - 1);
 
 }
@@ -437,7 +437,12 @@ hittable_list maya_scene()
                 const Vec3f& vn1 = modelArray[iteration]->vn(modelArray[iteration]->vNorms(i)[1]);
                 const Vec3f& vn2 = modelArray[iteration]->vn(modelArray[iteration]->vNorms(i)[2]);
 
-                world.add(make_shared<triangle>(v0 + transform, v1 + transform, v2 + transform,vn0, vn1, vn2 ,modelArray[iteration]->getMat()));
+                const Vec3f& vn2 = modelArray[iteration]->vt(modelArray[iteration]->vuvs(i)[0]);
+                const Vec3f& vn2 = modelArray[iteration]->vt(modelArray[iteration]->vuvs(i)[1]);
+                const Vec3f& vn2 = modelArray[iteration]->vt(modelArray[iteration]->vuvs(i)[2]);
+
+
+                world.add(make_shared<triangle>(v0 + transform, v1 + transform, v2 + transform,vn0, vn1, vn2 , UV0, UV1, UV2, modelArray[iteration]->getMat()));
             }
         }
         else std::cout << "Empty model in array" << std::endl;
